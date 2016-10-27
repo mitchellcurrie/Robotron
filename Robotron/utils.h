@@ -42,6 +42,14 @@ enum ModelType
 	OCTAGON
 };
 
+enum EntityType
+{
+	PLAYER,
+	ENEMY,
+	MAP,
+	POWERUP
+};
+
 
 class Utils
 {

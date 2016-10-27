@@ -75,31 +75,43 @@ void GameScene::CreateEntities()
 {
 	// Player Cube
 	Entity Player;
-	vec3 positionPlayer(0.0f, 0.0f, 0.0f);
-	Player.Initialise(CUBE, 36, m_Camera, positionPlayer, true);
+	Player.Initialise(PLAYER, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), true, false);
 	AddEntity(Player);
 
 	// Map Quad
 	Entity Map;
-	vec3 positionMap(0.0f, 0.0f, 0.0f);
-	Map.Initialise(QUAD, 6, m_Camera, positionMap, false);
+	Map.Initialise(MAP, QUAD, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), false, false);
 	AddEntity(Map);
 
 	// Enemy Cubes
 	Entity Enemy1;
-	vec3 positionEnemy1(5.0f, 0.0f, 5.0f);
-	Enemy1.Initialise(CUBE, 36, m_Camera, positionEnemy1, false);
+	Enemy1.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true);
 	AddEntity(Enemy1);
 
 	Entity Enemy2;
-	vec3 positionEnemy2(-5.0f, 0.0f, -5.0f);
-	Enemy2.Initialise(CUBE, 36, m_Camera, positionEnemy2, false);
+	Enemy2.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false);
 	AddEntity(Enemy2);
 
 	Entity Enemy3;
-	vec3 positionEnemy3(5.0f, 0.0f, -5.0f);
-	Enemy3.Initialise(CUBE, 36, m_Camera, positionEnemy3, false);
+	Enemy3.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false);
 	AddEntity(Enemy3);
+
+	Entity Enemy4;
+	Enemy4.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), false, false);
+	AddEntity(Enemy4);
+
+	Entity Enemy5;
+	Enemy5.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(1.0f, 0.0f, 1.0f), false, false);
+	AddEntity(Enemy5);
+
+	//Entity Enemy6;
+	//Enemy6.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-1.0f, 0.0f,-1.0f), false, false);
+	//AddEntity(Enemy6);
+
+	//Entity Enemy7;
+	//Enemy7.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-1.0f, 0.0f, 1.0f), false, false);
+	//AddEntity(Enemy7);
+
 
 	//// Pyramid
 	//Model ModelPyramid;
@@ -155,27 +167,33 @@ void GameScene::SetPositions(float _fDeltaTick)
 
 void GameScene::CheckCubeCollisions()
 {	
-	//for (auto it = m_entities.begin(); it != m_entities.end(); it++)
-	//{	
-	//	for (auto it2 = m_entities.begin(); it2 != m_entities.end(); it2++)
-	//	{
-	//		if (((abs(it->GetModel()->GetPosition().x) - abs(it2->GetModel()->GetPosition().x)) < 2.0f) &&   // within 5
-	//			((abs(it->GetModel()->GetPosition().z) - abs(it2->GetModel()->GetPosition().z)) < 2.0f) &&   // within 5
-	//			((it->GetModel()->GetPosition().x) != (it2->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
-	//			((it->GetModel()->GetPosition().z) != (it2->GetModel()->GetPosition().z)) &&
-	//			(it->GetModel()->GetModelType() == CUBE) &&
-	//			(it2->GetModel()->GetModelType() == CUBE))
-	//		{
-	//			if (!it->IsPlayer())
-	//				it->ResetCurrentVelocity();
-	//			break;
-	//		}
+	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	{	
+		for (auto it2 = m_entities.begin(); it2 != m_entities.end(); it2++)
+		{
+			if ((abs((it->GetModel()->GetPosition().x) - (it2->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
+				(abs((it->GetModel()->GetPosition().z) - (it2->GetModel()->GetPosition().z)) < 1.2f) &&   // within a distance
+				((it->GetModel()->GetPosition().x) != (it2->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
+				((it->GetModel()->GetPosition().z) != (it2->GetModel()->GetPosition().z)) &&
+				(it->GetModel()->GetModelType() == CUBE) &&
+				(it2->GetModel()->GetModelType() == CUBE))
+			{
+				if ((it->IsPlayer()) || (it2->IsPlayer()))
+				{
+					// Player dies
+				}
+					
+				else if ((it->GetEntityType() == ENEMY) && (it2->GetEntityType() == ENEMY))
+				{
+					it->Flee(it2->GetModel()->GetPosition());
+				//	break;
+				}
+			
+			}
 
-	//	}
-	//}	
+		}
+	}	
 }
-
-
 
 //void GameScene::ExecuteOneFrame()
 //{

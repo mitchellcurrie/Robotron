@@ -21,11 +21,13 @@
 #include "utils.h"
 
 vec3 Model::m_PlayerPosition = vec3(0.0f, 0.0f, 0.0f);
+vec3 Model::m_LeaderPosition = vec3(0.0f, 0.0f, 0.0f);
 // unsigned char keyState[255];
 
 Model::Model()
 {
-
+	m_IsPlayer = false;
+	m_IsLeader = false;
 }
 
 Model::~Model()
@@ -38,9 +40,10 @@ Model::~Model()
 * Parameters: ModelType enum, number of vertices, camera, position vector
 * Return: void
 ********************/
-void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer)
+void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader)
 {
 	m_IsPlayer = _IsPlayer;
+	m_IsLeader = _IsLeader;
 
 	Utils::SetVerticesAndIndices(_model);
 
@@ -282,8 +285,13 @@ void Model::Render(vec3 _CurrentVelocity)
 	{
 		m_position += _CurrentVelocity;
 
+		m_position = CheckEdgeCollision();
+
 		if (m_IsPlayer)		
 			m_PlayerPosition = m_position; // static variable stored in all models so they know the player's current position
+
+		if (m_IsLeader)
+			m_LeaderPosition = m_position; // static variable stored in all models so they know the player's current position
 	}
 
 	//else if (m_ModelType == CUBE) // enemy
@@ -390,3 +398,68 @@ vec3 Model::GetPlayerPosition()
 {
 	return m_PlayerPosition;
 }
+
+vec3 Model::GetLeaderPosition()
+{
+	return m_LeaderPosition;
+}
+
+bool Model::IsLeader()
+{
+	if (m_IsLeader)
+		return true;
+
+	else
+		return false;
+}
+
+vec3 Model::CheckEdgeCollision()
+{
+	float fMapSize = 14.5f;   // from utils function 
+
+	vec3 Position = m_position;
+
+	if (m_position.x > fMapSize)
+		Position.x = fMapSize;
+
+	else if (m_position.x < -fMapSize)
+		Position.x = -fMapSize;
+
+	if (m_position.z > fMapSize)
+		Position.z = fMapSize;
+
+	else if (m_position.z < -fMapSize)
+		Position.z = -fMapSize;
+
+	return Position;
+}
+
+bool Model::IsAtEdge()
+{
+	float fMapSize = 14.49f;   // slightly smaller than edge collision function above
+
+	if (m_position.x > fMapSize)
+		return true;
+
+	else if (m_position.x < -fMapSize)
+		return true;
+
+	if (m_position.z > fMapSize)
+		return true;
+
+	else if (m_position.z < -fMapSize)
+		return true;
+
+	return false;
+}
+
+bool Model::IsWithinFlockingDistance()
+{
+	if ((abs((m_position.x) - (m_LeaderPosition.x)) < 2.5f) &&   // within a distance
+		(abs((m_position.z) - (m_LeaderPosition.z)) < 2.5f))
+		return true;
+
+	else
+		return false;
+}
+

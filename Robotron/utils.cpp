@@ -73,7 +73,7 @@ void Utils::SetVerticesAndIndices (ModelType _model)
 
 	else if (_model == QUAD)
 	{
-		float fMapSize = 15;
+		float fMapSize = 15.0f;
 		// Quad
 		GLfloat vertices[]{
 			-fMapSize, -0.5f,  fMapSize, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,		// Top right  

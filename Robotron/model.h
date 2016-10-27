@@ -25,12 +25,17 @@ public:
 
 	Model();
 	~Model();
-	void Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer);
+	void Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader);
 	void Render(vec3 _CurrentVelocity);
 	void Rotate();
 	ModelType GetModelType();
 	vec3 GetPosition();
 	vec3 GetPlayerPosition();
+	vec3 GetLeaderPosition();
+	vec3 CheckEdgeCollision();
+	bool IsAtEdge();
+	bool IsLeader();
+	bool IsWithinFlockingDistance();
 
 private:
 
@@ -43,6 +48,8 @@ private:
 	ModelType m_ModelType;
 
 	static vec3 m_PlayerPosition;
+	static vec3 m_LeaderPosition;
 
 	bool m_IsPlayer;
+	bool m_IsLeader;
 };

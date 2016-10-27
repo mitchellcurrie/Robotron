@@ -13,21 +13,27 @@
 
 #pragma once
 
+#define _USE_MATH_DEFINES
+
 #include <iostream>
+#include <math.h>
+#include <time.h>  
+
 #include "glew.h"
 #include "freeglut.h"
 #include "entity.h"
 #include "ShaderLoader.h"
 #include "utils.h"
 
+
+
 unsigned char keyState[255];
 
 vec3 Entity::m_CurrentPlayerVelocity = vec3(0.0f, 0.0f, 0.0f);
-
+vec3 Entity::m_CurrentLeaderVelocity = vec3(0.0f, 0.0f, 0.0f);
 
 Entity::Entity()
 {
-	m_IsPlayer = false;
 	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 
 	// To update:
@@ -40,11 +46,11 @@ Entity::~Entity()
 
 }
 
-void Entity::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer)
+void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader)
 {
 	m_pModel = new Model;
-	m_pModel->Initialise(_model, _numVertices, _camera, _position, _IsPlayer);
-	m_IsPlayer = _IsPlayer;
+	m_pModel->Initialise(_model, _numVertices, _camera, _position, _IsPlayer, _IsLeader);
+	m_EntityType = _entity;
 }
 
 
@@ -55,92 +61,93 @@ void Entity::Render()
 
 void Entity::SetPositions(float _fDeltaTick)
 {
-	if (m_pModel->GetModelType() == CUBE)
+
+	if (m_EntityType == PLAYER)
 	{
-		if (m_IsPlayer)
+		float fSpeed = 8;
+
+		// Forward left Movement
+		if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) && (keyState[(unsigned char)'w'] == BUTTON_DOWN))
 		{
-			float fSpeed = 8;
-
-			// Forward left Movement
-			if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) && (keyState[(unsigned char)'w'] == BUTTON_DOWN))
-			{
-				printf("Move cube forward left \n");
-				m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
-			}
-
-			// Forward right Movement
-			else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) && (keyState[(unsigned char)'w'] == BUTTON_DOWN))
-			{
-				printf("Move cube forward right \n");
-				m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
-			}
-
-			// Backward left Movement
-			else if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) && (keyState[(unsigned char)'s'] == BUTTON_DOWN))
-			{
-				printf("Move cube backward left \n");
-				m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
-			}
-
-			// Backward right Movement
-			else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) && (keyState[(unsigned char)'s'] == BUTTON_DOWN))
-			{
-				printf("Move cube backward right \n");
-				m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
-			}
-
-			// Left Movement
-			else if (keyState[(unsigned char)'a'] == BUTTON_DOWN)
-			{
-				printf("Move cube left \n");
-				m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
-			}
-
-			// Right movement
-			else if (keyState[(unsigned char)'d'] == BUTTON_DOWN)
-			{
-				printf("Move cube right \n");
-				m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
-			}
-
-			// Forward movement
-			else if (keyState[(unsigned char)'w'] == BUTTON_DOWN)
-			{
-				printf("Move cube forward \n");
-				m_CurrentVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
-			}
-
-			// Back movement
-			else if (keyState[(unsigned char)'s'] == BUTTON_DOWN)
-			{
-				printf("Move cube back \n");
-				m_CurrentVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
-			}
-
-			else
-			{
-				m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
-				// Stop moving - if another window pops up etc 
-			}
-
-			m_CurrentPlayerVelocity = m_CurrentVelocity;
+			printf("Move cube forward left \n");
+			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
 		}
 
-		else // Enemy movement
+		// Forward right Movement
+		else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) && (keyState[(unsigned char)'w'] == BUTTON_DOWN))
 		{
-			
-		//	Seek(m_pModel->GetPlayerPosition());
-		//	Flee(m_pModel->GetPlayerPosition());
-			Pursue();
-		//	Evade();
+			printf("Move cube forward right \n");
+			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
 		}
 
-	} // end if model type cube
+		// Backward left Movement
+		else if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) && (keyState[(unsigned char)'s'] == BUTTON_DOWN))
+		{
+			printf("Move cube backward left \n");
+			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+		}
+
+		// Backward right Movement
+		else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) && (keyState[(unsigned char)'s'] == BUTTON_DOWN))
+		{
+			printf("Move cube backward right \n");
+			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+		}
+
+		// Left Movement
+		else if (keyState[(unsigned char)'a'] == BUTTON_DOWN)
+		{
+			printf("Move cube left \n");
+			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+		}
+
+		// Right movement
+		else if (keyState[(unsigned char)'d'] == BUTTON_DOWN)
+		{
+			printf("Move cube right \n");
+			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+		}
+
+		// Forward movement
+		else if (keyState[(unsigned char)'w'] == BUTTON_DOWN)
+		{
+			printf("Move cube forward \n");
+			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
+		}
+
+		// Back movement
+		else if (keyState[(unsigned char)'s'] == BUTTON_DOWN)
+		{
+			printf("Move cube back \n");
+			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
+		}
+
+		else
+		{
+			m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
+		}
+
+		m_CurrentPlayerVelocity = m_CurrentVelocity;
+	}
+
+	else if (m_EntityType == ENEMY)// Enemy movement
+	{		
+		Seek(m_pModel->GetPlayerPosition());
+	//	Flee(m_pModel->GetPlayerPosition());
+	//	Pursue();
+	//	Evade();
+	//	Wander();
+	//	LeaderFollowing();
+	//	Flocking();
+
+		if (m_pModel->IsLeader())
+			m_CurrentLeaderVelocity = m_CurrentVelocity;
+	}
 }
 
 bool Entity::IsPlayer()
 {
-	if (m_IsPlayer)
+	if (m_EntityType == PLAYER)
 		return true;
 
 	else
@@ -222,10 +229,12 @@ void Entity::Pursue()
 {
 	vec3 Distance = m_pModel->GetPlayerPosition() - m_pModel->GetPosition();
 
+	//float T = Distance.length() / (m_fMaxVelocity + GetPlayerVelocity().length());
 	float T = Distance.length() / m_fMaxVelocity;
-	//float T = 50.0f;
+	//float T = length(Distance) / m_fMaxVelocity;
+	// float T = 50.0f;
 
-	vec3 FuturePosition = m_pModel->GetPlayerPosition() + GetPlayerVelocity() * T;
+	vec3 FuturePosition = m_pModel->GetPlayerPosition() + (m_CurrentPlayerVelocity * T);
 
 	Seek(FuturePosition);
 }
@@ -237,9 +246,69 @@ void Entity::Evade()
 	float T = Distance.length() / m_fMaxVelocity;
 	//float T = 50.0f;
 
-	vec3 FuturePosition = m_pModel->GetPlayerPosition() + GetPlayerVelocity() * T;
+	vec3 FuturePosition = m_pModel->GetPlayerPosition() + m_CurrentPlayerVelocity * T;
 
 	Flee(FuturePosition);
+}
+
+void Entity::Wander()
+{
+	float Distance = 1000.0f;
+	float Radius = 7.0f;
+	vec3 TargetPosition = vec3(0.0f, 0.0f, 0.0f);
+
+	vec3 FuturePosition = m_pModel->GetPosition() + m_CurrentVelocity * Distance;
+
+	srand(time(NULL));
+
+	float AngleDegrees = (rand() % 360) + 1;
+	float AngleRads = AngleDegrees * M_PI / 180;
+
+	TargetPosition.x = FuturePosition.x + (Radius * cos(AngleRads));
+	TargetPosition.z = FuturePosition.z + (Radius * sin(AngleRads));
+	
+	Seek(TargetPosition);
+
+	if (m_pModel->IsAtEdge())
+		ReverseCurrentVelocity();
+}
+
+void Entity::LeaderFollowing()
+{
+	if (m_pModel->IsLeader())
+	{
+		Seek(m_pModel->GetPlayerPosition());
+	}
+
+	else
+	{
+		float Distance = 75.0f;
+		vec3 BackPosition = m_pModel->GetLeaderPosition() - m_CurrentLeaderVelocity * Distance;
+		
+		Seek(BackPosition);
+	}
+}
+
+void Entity::Flocking()
+{
+	if (m_pModel->IsLeader())
+	{
+		//Wander();
+		Seek(m_pModel->GetPlayerPosition());
+	}
+
+	else
+	{
+		if (m_pModel->IsWithinFlockingDistance())
+		{
+			m_CurrentVelocity = m_CurrentLeaderVelocity;
+		}
+
+		else 
+		{
+			Seek(m_pModel->GetLeaderPosition());
+		}
+	}
 }
 
 Model* Entity::GetModel()
@@ -247,12 +316,22 @@ Model* Entity::GetModel()
 	return m_pModel;
 }
 
-void Entity::ResetCurrentVelocity()
+void Entity::ReverseCurrentVelocity()
 {
-	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
+	m_CurrentVelocity *= -1.0f;
 }
 
 vec3 Entity::GetPlayerVelocity()
 {
 	return m_CurrentPlayerVelocity;
+}
+
+void Entity::ResetCurrentVelocity()
+{
+	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
+}
+
+EntityType Entity::GetEntityType()
+{
+	return m_EntityType;
 }

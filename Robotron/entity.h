@@ -21,7 +21,7 @@ public:
 
 	Entity();
 	~Entity();
-	virtual void Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer);
+	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader);
 	virtual void Render();
 	bool IsPlayer();
 	static void entityKeyboard(unsigned char key, int x, int y);
@@ -32,17 +32,23 @@ public:
 	void Flee(vec3 _playerPosition);
 	void Pursue();
 	void Evade();
+	void Wander();
+	void LeaderFollowing();
+	void Flocking();
 	Model* GetModel();
 	virtual void SetPositions(float _fDeltaTick);
+	void ReverseCurrentVelocity();
 	void ResetCurrentVelocity();
 	vec3 GetPlayerVelocity();
-
+	EntityType GetEntityType();
+	
 private:
 
 	Model* m_pModel;
 	vec3 m_CurrentVelocity;
 	static vec3 m_CurrentPlayerVelocity;
-	bool m_IsPlayer;
+	static vec3 m_CurrentLeaderVelocity;
 	float m_fMaxForce;
 	float m_fMaxVelocity;
+	EntityType m_EntityType;
 };
