@@ -39,7 +39,8 @@ enum ModelType
 	QUAD,
 	CUBE,
 	PYRAMID,
-	OCTAGON
+	OCTAGON,
+	DOT
 };
 
 enum EntityType
@@ -47,6 +48,7 @@ enum EntityType
 	PLAYER,
 	ENEMY,
 	MAP,
+	BULLET,
 	POWERUP
 };
 

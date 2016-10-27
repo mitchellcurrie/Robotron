@@ -23,6 +23,8 @@ GameScene::GameScene()
 	//	: m_pClock(0)
 {
 	m_pClock = new CClock;
+	m_pBullet = nullptr;
+	m_pPlayer = nullptr;
 }
 GameScene::~GameScene()
 {
@@ -50,13 +52,65 @@ void GameScene::AddEntity(Entity _entity)
 	m_entities.push_back(_entity);
 }
 
+void GameScene::AddBullet(Entity* _entity)
+{
+	m_bullets.push_back(_entity);
+}
+
 void GameScene::AddText(TextLabel _text)
 {
 	m_textLabels.push_back(_text);
 }
 
+void GameScene::CheckBullets()
+{	
+	if (Entity::IsBulletFired())
+	{
+		m_pBullet = new Entity;
+		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, m_pPlayer->GetModel()->GetPlayerPosition(), false, false);
+		AddBullet(m_pBullet);
+	}
+
+	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
+	{
+		if ((*it)->ToDeleteBullet())
+		{
+			m_bulletsToDelete.push_back(*it);
+		}
+	}
+
+	while (!m_bulletsToDelete.empty())
+	{
+		DeleteBullet(m_bulletsToDelete.back());
+		m_bulletsToDelete.pop_back();
+	}
+
+
+	/*
+	Entity function
+
+	m_pBullet = this;
+	if (m_pBullet->ToDeleteBullet())
+	{
+		delete m_pBullet;
+	}
+	
+	*/
+}
+
+void GameScene::DeleteBullet(Entity* _bullet)
+{
+	_bullet = nullptr;
+}
+
 void GameScene::RenderEntities()
 {
+	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
+	{
+		if ((*it) != nullptr)
+			(*it)->Render();
+	}
+
 	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
 	{		
 		it->Render();	
@@ -77,6 +131,7 @@ void GameScene::CreateEntities()
 	Entity Player;
 	Player.Initialise(PLAYER, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), true, false);
 	AddEntity(Player);
+	m_pPlayer = &Player;
 
 	// Map Quad
 	Entity Map;
@@ -112,18 +167,16 @@ void GameScene::CreateEntities()
 	//Enemy7.Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-1.0f, 0.0f, 1.0f), false, false);
 	//AddEntity(Enemy7);
 
+	// Dot - small quad for bullet
+	/*Entity Bullet;
+	Bullet.Initialise(BULLET, DOT, 6, m_Camera, vec3(1.0f, 0.0f, 1.0f), false, false);
+	AddEntity(Bullet);*/
 
 	//// Pyramid
 	//Model ModelPyramid;
 	//vec3 positionPyramid(-2.5f, 1.9f, -2.0f);
 	//ModelPyramid.Initialise(PYRAMID, 18, m_Camera, positionPyramid);
 	//AddModel(ModelPyramid);
-
-	//// Triangle
-	//Model ModelTriangle;
-	//vec3 positionTriangle(1.5f, -1.0f, 0.0f);
-	//ModelTriangle.Initialise(TRIANGLE, 3, m_Camera, positionTriangle);
-	//AddModel(ModelTriangle);
 
 	//// Octagon
 	//Model ModelOctagon;
@@ -162,11 +215,17 @@ void GameScene::SetPositions(float _fDeltaTick)
 	{
 		it->SetPositions(_fDeltaTick);
 	}
+
+	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
+	{
+		(*it)->SetPositions(_fDeltaTick);
+	}
 }
 
 
-void GameScene::CheckCubeCollisions()
+void GameScene::CheckCollisions()
 {	
+	// CUBE collisions - enemys and players
 	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
 	{	
 		for (auto it2 = m_entities.begin(); it2 != m_entities.end(); it2++)
@@ -175,10 +234,12 @@ void GameScene::CheckCubeCollisions()
 				(abs((it->GetModel()->GetPosition().z) - (it2->GetModel()->GetPosition().z)) < 1.2f) &&   // within a distance
 				((it->GetModel()->GetPosition().x) != (it2->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
 				((it->GetModel()->GetPosition().z) != (it2->GetModel()->GetPosition().z)) &&
-				(it->GetModel()->GetModelType() == CUBE) &&
+				(it->GetModel()->GetModelType() == CUBE) && // both objects CUBES - so it doesn't include the map and other entities
 				(it2->GetModel()->GetModelType() == CUBE))
 			{
-				if ((it->IsPlayer()) || (it2->IsPlayer()))
+				if (((it->GetEntityType() == PLAYER) && (it2->GetEntityType() == ENEMY)) ||
+					((it->GetEntityType() == ENEMY) && (it2->GetEntityType() == PLAYER)))
+
 				{
 					// Player dies
 				}
@@ -192,7 +253,22 @@ void GameScene::CheckCubeCollisions()
 			}
 
 		}
-	}	
+	}
+
+	// BULLET and ENEMY collisions
+	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	{
+		for (auto it2 = m_bullets.begin(); it2 != m_bullets.end(); it2++)
+		{
+			if ((abs((it->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.5f) &&   // within a distance
+				(abs((it->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.5f) &&
+				(it->GetEntityType() == ENEMY))
+			{
+				(*it2)->GetModel()->SetBulletToBeDeleted();
+			}
+		}
+
+	}
 }
 
 //void GameScene::ExecuteOneFrame()

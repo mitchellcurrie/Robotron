@@ -41,6 +41,8 @@ public:
 	void ResetCurrentVelocity();
 	vec3 GetPlayerVelocity();
 	EntityType GetEntityType();
+	static bool IsBulletFired();
+	bool ToDeleteBullet();
 	
 private:
 
@@ -51,4 +53,6 @@ private:
 	float m_fMaxForce;
 	float m_fMaxVelocity;
 	EntityType m_EntityType;
+	static bool m_bBulletFired;
+	bool SetBulletDirection;
 };

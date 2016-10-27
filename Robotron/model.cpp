@@ -28,6 +28,7 @@ Model::Model()
 {
 	m_IsPlayer = false;
 	m_IsLeader = false;
+	m_bBulletToBeDeleted = false;
 }
 
 Model::~Model()
@@ -145,9 +146,12 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 			filename1 = "EnemyTexture.jpg";
 	}
 
+	else if (m_ModelType == DOT)
+		filename1 = "Bullet.png";
+
 	//else if (m_ModelType == TRIANGLE)
 	//{
-	//	filename1 = "Blue.jpg";
+	//	filename1 = "Bullet.png";
 	//	iSize = 6;
 	//}
 
@@ -197,9 +201,13 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 			filename2 = "EnemyTexture.jpg";
 	}
 
+	else if (m_ModelType == DOT)
+		filename2 = "Bullet.png";
+
+	
 	//else if (m_ModelType == TRIANGLE)
 	//{
-	//	filename2 = "Blue.jpg";
+	//	filename2 = "Bullet.png";
 	//	iSize = 6;
 	//}
 
@@ -292,6 +300,17 @@ void Model::Render(vec3 _CurrentVelocity)
 
 		if (m_IsLeader)
 			m_LeaderPosition = m_position; // static variable stored in all models so they know the player's current position
+	}
+
+	if (m_ModelType == DOT)
+	{
+		m_position += _CurrentVelocity;
+
+		if (IsAtEdge())
+		{
+			m_bBulletToBeDeleted = true;
+		}
+
 	}
 
 	//else if (m_ModelType == CUBE) // enemy
@@ -461,5 +480,15 @@ bool Model::IsWithinFlockingDistance()
 
 	else
 		return false;
+}
+
+bool Model::ToDeleteBullet()
+{
+	return m_bBulletToBeDeleted;
+}
+
+void Model::SetBulletToBeDeleted()
+{
+	m_bBulletToBeDeleted = true;
 }
 

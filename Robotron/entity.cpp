@@ -25,12 +25,11 @@
 #include "ShaderLoader.h"
 #include "utils.h"
 
-
-
 unsigned char keyState[255];
 
 vec3 Entity::m_CurrentPlayerVelocity = vec3(0.0f, 0.0f, 0.0f);
 vec3 Entity::m_CurrentLeaderVelocity = vec3(0.0f, 0.0f, 0.0f);
+bool Entity::m_bBulletFired = false;
 
 Entity::Entity()
 {
@@ -39,6 +38,8 @@ Entity::Entity()
 	// To update:
 	m_fMaxForce = 0.05f;
 	m_fMaxVelocity = 0.05f;
+	SetBulletDirection = false;
+	srand(time(NULL));
 }
 
 Entity::~Entity()
@@ -61,9 +62,10 @@ void Entity::Render()
 
 void Entity::SetPositions(float _fDeltaTick)
 {
-
 	if (m_EntityType == PLAYER)
 	{
+		m_bBulletFired = false;
+
 		float fSpeed = 8;
 
 		// Forward left Movement
@@ -127,6 +129,12 @@ void Entity::SetPositions(float _fDeltaTick)
 			m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 		}
 
+		if (keyState[(unsigned char)'l'] == BUTTON_DOWN)
+		{
+			printf("Fire \n");
+			m_bBulletFired = true;
+		}
+
 		m_CurrentPlayerVelocity = m_CurrentVelocity;
 	}
 
@@ -142,6 +150,16 @@ void Entity::SetPositions(float _fDeltaTick)
 
 		if (m_pModel->IsLeader())
 			m_CurrentLeaderVelocity = m_CurrentVelocity;
+	}
+
+	else if (m_EntityType == BULLET)
+	{
+		if (!SetBulletDirection)
+		{
+			m_CurrentVelocity = m_CurrentPlayerVelocity * 7.0f;
+			SetBulletDirection = true;
+		}
+			
 	}
 }
 
@@ -253,13 +271,11 @@ void Entity::Evade()
 
 void Entity::Wander()
 {
-	float Distance = 1000.0f;
+	float Distance = 1500.0f;
 	float Radius = 7.0f;
 	vec3 TargetPosition = vec3(0.0f, 0.0f, 0.0f);
 
 	vec3 FuturePosition = m_pModel->GetPosition() + m_CurrentVelocity * Distance;
-
-	srand(time(NULL));
 
 	float AngleDegrees = (rand() % 360) + 1;
 	float AngleRads = AngleDegrees * M_PI / 180;
@@ -334,4 +350,14 @@ void Entity::ResetCurrentVelocity()
 EntityType Entity::GetEntityType()
 {
 	return m_EntityType;
+}
+
+bool Entity::IsBulletFired()
+{
+	return m_bBulletFired;
+}
+
+bool Entity::ToDeleteBullet()
+{
+	return m_pModel->ToDeleteBullet();
 }

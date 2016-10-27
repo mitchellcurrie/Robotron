@@ -13,6 +13,21 @@
 //		  Mitchell.Currie@mediadesignschool.com
 //        
 
+
+/*
+
+	To do:
+
+	Bullet firing delay timer
+	Check / fix enemy and bullet collisions once timer is working
+	Add text for different AI functions
+	Add power ups
+
+
+
+*/
+
+
 #include <iostream>
 #include <vector>
 
@@ -43,8 +58,9 @@ void render()
 	g_fDeltaTick = GameScene::GetInstance().GetClock()->GetDeltaTick();
 
 	GameScene::GetInstance().SetPositions(g_fDeltaTick);
-	GameScene::GetInstance().CheckCubeCollisions();
-
+	GameScene::GetInstance().CheckCollisions();
+	GameScene::GetInstance().CheckBullets();
+	
 	GameScene::GetInstance().RenderEntities(); // for entities
 	GameScene::GetInstance().RenderText(); // for text
 

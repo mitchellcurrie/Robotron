@@ -233,6 +233,33 @@ void Utils::SetVerticesAndIndices (ModelType _model)
 		m_sizeIndices = sizeof(indices) / 4;
 	}
 
+	else if (_model == DOT)
+	{
+		float fBulletSize = 0.1f;
+		// Quad
+		GLfloat vertices[]{
+				fBulletSize, 0.0f,  fBulletSize, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,		// Top right  
+				fBulletSize, 0.0f, -fBulletSize, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,		// Bottom right 
+			   -fBulletSize, 0.0f, -fBulletSize, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,		// Bottom left
+			   -fBulletSize, 0.0f,  fBulletSize, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,		// Top left
+
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
+		};
+
+		GLuint indices[]{
+			2, 1, 0, // First Triangle
+			2, 3, 0  // Second Triangle
+
+		};
+
+		m_vertices = vertices;
+		m_indices = indices;
+
+		m_sizeVertices = sizeof(vertices) / 4;
+		m_sizeIndices = sizeof(indices) / 4;
+	}
+
 }
 
 

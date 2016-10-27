@@ -36,6 +36,8 @@ public:
 	bool IsAtEdge();
 	bool IsLeader();
 	bool IsWithinFlockingDistance();
+	bool ToDeleteBullet();
+	void SetBulletToBeDeleted();
 
 private:
 
@@ -52,4 +54,5 @@ private:
 
 	bool m_IsPlayer;
 	bool m_IsLeader;
+	bool m_bBulletToBeDeleted;
 };
