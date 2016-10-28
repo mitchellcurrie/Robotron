@@ -22,13 +22,14 @@
 
 vec3 Model::m_PlayerPosition = vec3(0.0f, 0.0f, 0.0f);
 vec3 Model::m_LeaderPosition = vec3(0.0f, 0.0f, 0.0f);
+vec3 Model::m_LastPlayerVelocity = vec3(0.0f, 0.0f, 0.0f);
 // unsigned char keyState[255];
 
 Model::Model()
 {
 	m_IsPlayer = false;
 	m_IsLeader = false;
-	m_bBulletToBeDeleted = false;
+	m_bToBeDeleted = false;
 }
 
 Model::~Model()
@@ -300,16 +301,20 @@ void Model::Render(vec3 _CurrentVelocity)
 
 		if (m_IsLeader)
 			m_LeaderPosition = m_position; // static variable stored in all models so they know the player's current position
+
+		model = glm::translate(model, m_position);
 	}
 
 	if (m_ModelType == DOT)
 	{
-		m_position += _CurrentVelocity;
-
 		if (IsAtEdge())
 		{
-			m_bBulletToBeDeleted = true;
+			m_bToBeDeleted = true;
 		}
+
+		else
+			m_position += _CurrentVelocity;
+			model = glm::translate(model, m_position);
 
 	}
 
@@ -321,7 +326,9 @@ void Model::Render(vec3 _CurrentVelocity)
 	//	m_position += glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;*/
 	//}
 
-	model = glm::translate(model, m_position);
+	////////////////////////////////////////
+//	model = glm::translate(model, m_position);
+	////////////////////////////////////////
 	
 	//else if (m_ModelType == PYRAMID)
 	//{
@@ -482,13 +489,27 @@ bool Model::IsWithinFlockingDistance()
 		return false;
 }
 
-bool Model::ToDeleteBullet()
+bool Model::ToDelete()
 {
-	return m_bBulletToBeDeleted;
+	return m_bToBeDeleted;
 }
 
-void Model::SetBulletToBeDeleted()
+void Model::SetToBeDeleted()
 {
-	m_bBulletToBeDeleted = true;
+	m_bToBeDeleted = true;
 }
+
+vec3 Model::GetLastPlayerVelocity()
+{
+	return m_LastPlayerVelocity;;
+}
+
+void Model::SetLastPlayerVelocity(vec3 _velocity)
+{
+	m_LastPlayerVelocity = _velocity;
+}
+
+
+
+	
 

@@ -39,7 +39,9 @@ public:
 //	void ExecuteOneFrame();
 	CClock* GetClock();
 	void CheckBullets();
-	void DeleteBullet(Entity* _bullet);
+	void CheckEntities();
+	void DeleteEntity(Entity* _entity);
+	void DeleteEntity(Entity _entity);
 
 protected:
 	CClock* m_pClock;
@@ -52,7 +54,7 @@ private:
 	//vec3 m_PlayerPosition;
 	std::vector<TextLabel> m_textLabels;
 	std::vector<Entity*> m_bullets;
-	std::vector<Entity*> m_bulletsToDelete;
+	std::vector<Entity*> m_bulletsToDelete;	
 	Entity* m_pBullet;
 	Entity* m_pPlayer;
 

@@ -36,8 +36,10 @@ public:
 	bool IsAtEdge();
 	bool IsLeader();
 	bool IsWithinFlockingDistance();
-	bool ToDeleteBullet();
-	void SetBulletToBeDeleted();
+	bool ToDelete();
+	void SetToBeDeleted();
+	void SetLastPlayerVelocity(vec3 _velocity);
+	vec3 GetLastPlayerVelocity();
 
 private:
 
@@ -51,8 +53,11 @@ private:
 
 	static vec3 m_PlayerPosition;
 	static vec3 m_LeaderPosition;
+	static vec3 m_LastPlayerVelocity;
 
 	bool m_IsPlayer;
 	bool m_IsLeader;
-	bool m_bBulletToBeDeleted;
+	bool m_bToBeDeleted;
+
+	
 };

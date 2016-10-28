@@ -30,6 +30,8 @@ unsigned char keyState[255];
 vec3 Entity::m_CurrentPlayerVelocity = vec3(0.0f, 0.0f, 0.0f);
 vec3 Entity::m_CurrentLeaderVelocity = vec3(0.0f, 0.0f, 0.0f);
 bool Entity::m_bBulletFired = false;
+std::clock_t Entity::m_start = std::clock();
+double Entity::m_duration = 0.0f;
 
 Entity::Entity()
 {
@@ -52,6 +54,9 @@ void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertic
 	m_pModel = new Model;
 	m_pModel->Initialise(_model, _numVertices, _camera, _position, _IsPlayer, _IsLeader);
 	m_EntityType = _entity;
+
+	if (m_EntityType == PLAYER)
+		m_start = std::clock();
 }
 
 
@@ -73,6 +78,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube forward left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Forward right Movement
@@ -80,6 +86,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube forward right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Backward left Movement
@@ -87,6 +94,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube backward left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Backward right Movement
@@ -94,6 +102,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube backward right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Left Movement
@@ -101,6 +110,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Right movement
@@ -108,6 +118,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Forward movement
@@ -115,6 +126,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube forward \n");
 			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Back movement
@@ -122,6 +134,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			printf("Move cube back \n");
 			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
+			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		else
@@ -131,8 +144,14 @@ void Entity::SetPositions(float _fDeltaTick)
 
 		if (keyState[(unsigned char)'l'] == BUTTON_DOWN)
 		{
-			printf("Fire \n");
-			m_bBulletFired = true;
+			m_duration = (std::clock() - m_start) / (double)CLOCKS_PER_SEC;
+			
+			if (m_duration > 0.15f)
+			{
+				printf("Fire \n");
+				m_bBulletFired = true;
+				m_start = std::clock();
+			}		
 		}
 
 		m_CurrentPlayerVelocity = m_CurrentVelocity;
@@ -156,7 +175,7 @@ void Entity::SetPositions(float _fDeltaTick)
 	{
 		if (!SetBulletDirection)
 		{
-			m_CurrentVelocity = m_CurrentPlayerVelocity * 7.0f;
+			m_CurrentVelocity = m_pModel->GetLastPlayerVelocity() * 7.0f;
 			SetBulletDirection = true;
 		}
 			
@@ -342,6 +361,11 @@ vec3 Entity::GetPlayerVelocity()
 	return m_CurrentPlayerVelocity;
 }
 
+vec3 Entity::GetCurrentVelocity()
+{
+	return m_CurrentVelocity;
+}
+
 void Entity::ResetCurrentVelocity()
 {
 	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
@@ -357,7 +381,7 @@ bool Entity::IsBulletFired()
 	return m_bBulletFired;
 }
 
-bool Entity::ToDeleteBullet()
+bool Entity::ToDelete()
 {
-	return m_pModel->ToDeleteBullet();
+	return m_pModel->ToDelete();
 }

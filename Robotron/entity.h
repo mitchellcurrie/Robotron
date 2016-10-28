@@ -14,6 +14,7 @@
 #pragma once
 
 #include "model.h"
+#include <ctime>
 
 class Entity
 {
@@ -40,9 +41,10 @@ public:
 	void ReverseCurrentVelocity();
 	void ResetCurrentVelocity();
 	vec3 GetPlayerVelocity();
+	vec3 GetCurrentVelocity();
 	EntityType GetEntityType();
 	static bool IsBulletFired();
-	bool ToDeleteBullet();
+	bool ToDelete();
 	
 private:
 
@@ -55,4 +57,6 @@ private:
 	EntityType m_EntityType;
 	static bool m_bBulletFired;
 	bool SetBulletDirection;
+	static std::clock_t m_start;
+	static double m_duration;
 };

@@ -64,6 +64,8 @@ void GameScene::AddText(TextLabel _text)
 
 void GameScene::CheckBullets()
 {	
+	std::vector<Entity*> bulletsToKeep;
+
 	if (Entity::IsBulletFired())
 	{
 		m_pBullet = new Entity;
@@ -73,41 +75,70 @@ void GameScene::CheckBullets()
 
 	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
 	{
-		if ((*it)->ToDeleteBullet())
+		if (!(*it)->ToDelete())
 		{
-			m_bulletsToDelete.push_back(*it);
+			bulletsToKeep.push_back(*it);
 		}
 	}
 
-	while (!m_bulletsToDelete.empty())
+	while (!m_bullets.empty())
 	{
-		DeleteBullet(m_bulletsToDelete.back());
-		m_bulletsToDelete.pop_back();
+		DeleteEntity(m_bullets.back());
+		m_bullets.pop_back();
 	}
 
-
-	/*
-	Entity function
-
-	m_pBullet = this;
-	if (m_pBullet->ToDeleteBullet())
-	{
-		delete m_pBullet;
-	}
-	
-	*/
+	m_bullets = bulletsToKeep;
 }
 
-void GameScene::DeleteBullet(Entity* _bullet)
+void GameScene::CheckEntities()
 {
-	_bullet = nullptr;
+	std::vector<Entity> entitiesToKeep;
+
+	//if (Entity::IsBulletFired())    // Change this to be able to add new enemies
+	//{
+	//	m_pBullet = new Entity;
+	//	m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, m_pPlayer->GetModel()->GetPlayerPosition(), false, false);
+	//	AddBullet(m_pBullet);
+	//}
+
+	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	{
+		if (!(it)->ToDelete())
+		{
+			entitiesToKeep.push_back(*it);
+		}
+	}
+
+	while (!m_entities.empty())
+	{
+		DeleteEntity(m_entities.back());
+		m_entities.pop_back();
+	}
+
+	m_entities = entitiesToKeep;
+}
+
+void GameScene::DeleteEntity(Entity* _entity)
+{
+	/*delete _bullet;
+	_bullet = nullptr;*/
+
+	// Need another way to delete the bullet memory, at the moment just popping from vector without deleting first
+}
+
+void GameScene::DeleteEntity(Entity _entity)
+{
+	/*delete _bullet;
+	_bullet = nullptr;*/
+
+	// Need another way to delete the entity memory, at the moment just popping from vector without deleting first
 }
 
 void GameScene::RenderEntities()
 {
 	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
 	{
-		if ((*it) != nullptr)
+		if ((*it)->GetModel() != nullptr)
 			(*it)->Render();
 	}
 
@@ -264,8 +295,14 @@ void GameScene::CheckCollisions()
 				(abs((it->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.5f) &&
 				(it->GetEntityType() == ENEMY))
 			{
-				(*it2)->GetModel()->SetBulletToBeDeleted();
+				(it)->GetModel()->SetToBeDeleted(); // delete enemy
+				(*it2)->GetModel()->SetToBeDeleted(); // delete bullet
 			}
+
+			//if ((*it2)->GetCurrentVelocity() == vec3(0.0f, 0.0f, 0.0f))
+			//{
+			//	(*it2)->GetModel()->SetBulletToBeDeleted();                // to try to sop flashing bullet on the player spawn point - not working
+			//}
 		}
 
 	}

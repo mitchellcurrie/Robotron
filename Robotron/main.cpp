@@ -18,12 +18,8 @@
 
 	To do:
 
-	Bullet firing delay timer
-	Check / fix enemy and bullet collisions once timer is working
 	Add text for different AI functions
 	Add power ups
-
-
 
 */
 
@@ -60,6 +56,7 @@ void render()
 	GameScene::GetInstance().SetPositions(g_fDeltaTick);
 	GameScene::GetInstance().CheckCollisions();
 	GameScene::GetInstance().CheckBullets();
+	GameScene::GetInstance().CheckEntities();
 	
 	GameScene::GetInstance().RenderEntities(); // for entities
 	GameScene::GetInstance().RenderText(); // for text
