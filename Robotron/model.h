@@ -40,6 +40,7 @@ public:
 	void SetToBeDeleted();
 	void SetLastPlayerVelocity(vec3 _velocity);
 	vec3 GetLastPlayerVelocity();
+	void SetLeader();
 
 private:
 

@@ -45,6 +45,9 @@ public:
 	EntityType GetEntityType();
 	static bool IsBulletFired();
 	bool ToDelete();
+	std::string GetAIName();
+	vec2 GetTextPosition();
+	void SetLeaderDead();
 	
 private:
 
@@ -59,4 +62,8 @@ private:
 	bool SetBulletDirection;
 	static std::clock_t m_start;
 	static double m_duration;
+	static std::string m_AIName;
+	static vec2 m_textPosition;
+	static bool m_bLeaderDead;
 };
+

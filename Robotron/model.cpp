@@ -509,6 +509,11 @@ void Model::SetLastPlayerVelocity(vec3 _velocity)
 	m_LastPlayerVelocity = _velocity;
 }
 
+void Model::SetLeader()
+{
+	m_IsLeader = true;
+}
+
 
 
 	

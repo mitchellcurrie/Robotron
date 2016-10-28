@@ -32,6 +32,9 @@ vec3 Entity::m_CurrentLeaderVelocity = vec3(0.0f, 0.0f, 0.0f);
 bool Entity::m_bBulletFired = false;
 std::clock_t Entity::m_start = std::clock();
 double Entity::m_duration = 0.0f;
+std::string Entity::m_AIName = "";
+vec2 Entity::m_textPosition = vec2(0.0f, 0.0f);
+bool Entity::m_bLeaderDead = false;
 
 Entity::Entity()
 {
@@ -159,13 +162,33 @@ void Entity::SetPositions(float _fDeltaTick)
 
 	else if (m_EntityType == ENEMY)// Enemy movement
 	{		
-		Seek(m_pModel->GetPlayerPosition());
-	//	Flee(m_pModel->GetPlayerPosition());
-	//	Pursue();
-	//	Evade();
-	//	Wander();
-	//	LeaderFollowing();
-	//	Flocking();
+		/*Seek(m_pModel->GetPlayerPosition());
+		m_AIName = "Seek";
+		m_textPosition = vec2(720, 860);*/
+
+		/*Flee(m_pModel->GetPlayerPosition());
+		m_AIName = "Flee";
+		m_textPosition = vec2(720, 860);*/
+
+		/*Pursue();
+		m_AIName = "Pursue";
+		m_textPosition = vec2(670, 860);*/ 
+
+		/*Evade();
+		m_AIName = "Evade";
+		m_textPosition = vec2(690, 860);*/
+
+		/*Wander();
+		m_AIName = "Wander";
+		m_textPosition = vec2(680, 860);*/
+
+	    LeaderFollowing();
+		m_AIName = "Leader Following";
+		m_textPosition = vec2(495, 860);
+
+		/*Flocking();
+		m_AIName = "Flocking";
+		m_textPosition = vec2(658, 860);*/
 
 		if (m_pModel->IsLeader())
 			m_CurrentLeaderVelocity = m_CurrentVelocity;
@@ -310,6 +333,12 @@ void Entity::Wander()
 
 void Entity::LeaderFollowing()
 {
+	if (m_bLeaderDead)
+	{
+		m_pModel->SetLeader();
+		m_bLeaderDead = false;
+	}
+	
 	if (m_pModel->IsLeader())
 	{
 		Seek(m_pModel->GetPlayerPosition());
@@ -326,6 +355,12 @@ void Entity::LeaderFollowing()
 
 void Entity::Flocking()
 {
+	if (m_bLeaderDead)
+	{
+		m_pModel->SetLeader();
+		m_bLeaderDead = false;
+	}
+
 	if (m_pModel->IsLeader())
 	{
 		//Wander();
@@ -343,7 +378,7 @@ void Entity::Flocking()
 		{
 			Seek(m_pModel->GetLeaderPosition());
 		}
-	}
+	}	
 }
 
 Model* Entity::GetModel()
@@ -384,4 +419,19 @@ bool Entity::IsBulletFired()
 bool Entity::ToDelete()
 {
 	return m_pModel->ToDelete();
+}
+
+std::string Entity::GetAIName()
+{
+	return m_AIName;
+}
+
+vec2 Entity::GetTextPosition()
+{
+	return m_textPosition;
+}
+
+void Entity::SetLeaderDead()
+{
+	m_bLeaderDead = true;
 }

@@ -1,7 +1,9 @@
 #include "TextLabel.h"
 
 
-TextLabel::TextLabel(std::string text, std::string font){
+TextLabel::TextLabel(TextType _type, std::string text, std::string font){
+
+	m_TextType = _type;
 
 	this->text = text;
 	this->color = glm::vec3(1.0, 1.0, 1.0);
@@ -218,4 +220,9 @@ void TextLabel::setText(std::string _text){
 
 	this->text = _text;
 
+}
+
+TextType TextLabel::GetTextType()
+{
+	return m_TextType;
 }

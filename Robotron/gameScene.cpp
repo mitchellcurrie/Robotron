@@ -152,6 +152,12 @@ void GameScene::RenderText()
 {
 	for (auto it = m_textLabels.begin(); it != m_textLabels.end(); it++)
 	{
+		if (it->GetTextType() == AIDESCRIPTION)
+		{
+			it->setText(m_entities.begin()->GetAIName());	
+			it->setPosition(m_entities.begin()->GetTextPosition());
+		}
+		
 		it->Render();
 	}
 }
@@ -219,20 +225,20 @@ void GameScene::CreateEntities()
 void GameScene::CreateText()
 {
 	/// Text
-	TextLabel Title("Robotron", "freeagent.ttf");
+	TextLabel Title(STATIC, "Robotron", "freeagent.ttf");
 	Title.setPosition(glm::vec2(15, 860));
 	Title.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(Title);
 
-	TextLabel Score("Score:", "freeagent.ttf");
+	TextLabel Score(STATIC, "Score:", "freeagent.ttf");
 	Score.setPosition(glm::vec2(1250, 860));
 	Score.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(Score);
 
-	// To update text:
-	/*std::string Score = "100";
-	e.g.  ScoreNumber->setText(test.c_str());*/
-	// Put in another function - e.g. set score
+	TextLabel AIName(AIDESCRIPTION, "", "freeagent.ttf");
+	AIName.setPosition(glm::vec2(700, 860));
+	AIName.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	AddText(AIName);
 }
 
 CClock* GameScene::GetClock()
@@ -297,6 +303,11 @@ void GameScene::CheckCollisions()
 			{
 				(it)->GetModel()->SetToBeDeleted(); // delete enemy
 				(*it2)->GetModel()->SetToBeDeleted(); // delete bullet
+
+				if (it->GetModel()->IsLeader())
+				{
+					it->SetLeaderDead();
+				}
 			}
 
 			//if ((*it2)->GetCurrentVelocity() == vec3(0.0f, 0.0f, 0.0f))

@@ -3,6 +3,7 @@
 #include "glew.h"
 #include "freeglut.h"
 #include "SOIL.h"
+#include "utils.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -28,7 +29,7 @@ struct Character {
 class TextLabel
 {
 public:
-	TextLabel(std::string text, std::string font);
+	TextLabel(TextType _type, std::string text, std::string font);
 	~TextLabel();
 
 	void Render();
@@ -36,6 +37,7 @@ public:
 	void setColor(glm::vec3 _color);
 	void setScale(GLfloat _scale);
 	void setText(std::string _text);
+	TextType GetTextType();
 
 private:
 	std::string text;
@@ -45,7 +47,7 @@ private:
 
 	GLuint VAO, VBO, program;
 	std::map<GLchar, Character> Characters;
-
+	TextType m_TextType;
 
 };
 

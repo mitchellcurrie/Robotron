@@ -52,6 +52,12 @@ enum EntityType
 	POWERUP
 };
 
+enum TextType
+{
+	STATIC,
+	AIDESCRIPTION
+};
+
 
 class Utils
 {

@@ -18,7 +18,6 @@
 
 	To do:
 
-	Add text for different AI functions
 	Add power ups
 
 */
