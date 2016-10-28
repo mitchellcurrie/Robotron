@@ -55,7 +55,8 @@ enum EntityType
 enum TextType
 {
 	STATIC,
-	AIDESCRIPTION
+	AIDESCRIPTION,
+	SCORE
 };
 
 

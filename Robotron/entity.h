@@ -48,11 +48,14 @@ public:
 	std::string GetAIName();
 	vec2 GetTextPosition();
 	void SetLeaderDead();
+	void AddToScore(int _Score);
+	std::string GetScore();
 	
 private:
 
 	Model* m_pModel;
 	vec3 m_CurrentVelocity;
+	vec3 m_CurrentBulletVelocity;
 	static vec3 m_CurrentPlayerVelocity;
 	static vec3 m_CurrentLeaderVelocity;
 	float m_fMaxForce;
@@ -63,7 +66,9 @@ private:
 	static std::clock_t m_start;
 	static double m_duration;
 	static std::string m_AIName;
+	static int m_iScore;
 	static vec2 m_textPosition;
 	static bool m_bLeaderDead;
+	static vec3 m_LastBulletVelocity;
 };
 

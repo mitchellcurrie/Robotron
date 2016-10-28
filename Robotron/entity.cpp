@@ -18,6 +18,7 @@
 #include <iostream>
 #include <math.h>
 #include <time.h>  
+#include <string>
 
 #include "glew.h"
 #include "freeglut.h"
@@ -35,6 +36,9 @@ double Entity::m_duration = 0.0f;
 std::string Entity::m_AIName = "";
 vec2 Entity::m_textPosition = vec2(0.0f, 0.0f);
 bool Entity::m_bLeaderDead = false;
+vec3 Entity::m_LastBulletVelocity = vec3(0.0f, 0.0f, -0.94167f); // -0.94 - In case the player shoots before using the shooting direction controls, shoots forward
+int Entity::m_iScore = 0;
+
 
 Entity::Entity()
 {
@@ -73,6 +77,8 @@ void Entity::SetPositions(float _fDeltaTick)
 	if (m_EntityType == PLAYER)
 	{
 		m_bBulletFired = false;
+
+		////////////  PLAYER Direction ////////////////
 
 		float fSpeed = 8;
 
@@ -145,7 +151,9 @@ void Entity::SetPositions(float _fDeltaTick)
 			m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 		}
 
-		if (keyState[(unsigned char)'l'] == BUTTON_DOWN)
+		////////////  BULLET Firing ////////////////
+
+		if (keyState[(unsigned char)32] == BUTTON_DOWN) // space bar
 		{
 			m_duration = (std::clock() - m_start) / (double)CLOCKS_PER_SEC;
 			
@@ -196,9 +204,86 @@ void Entity::SetPositions(float _fDeltaTick)
 
 	else if (m_EntityType == BULLET)
 	{
+		////////////  BULLET Direction ////////////////
+
+		float fSpeed = 45;
+
+		// Forward left 
+		if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+		{
+			//printf("Move cube forward left \n");
+			m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
+		// Forward right 
+		else if ((keyState[(unsigned char)'l'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+		{
+			//printf("Move cube forward right \n");
+			m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
+		// Backward left 
+		else if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'k'] == BUTTON_DOWN))
+		{
+			//printf("Move cube backward left \n");
+			m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
+		// Backward right 
+		else if ((keyState[(unsigned char)'k'] == BUTTON_DOWN) && (keyState[(unsigned char)'l'] == BUTTON_DOWN))
+		{
+			//printf("Move cube backward right \n");
+			m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
+		// Left 
+		else if (keyState[(unsigned char)'j'] == BUTTON_DOWN)
+		{
+			//printf("Move cube left \n");
+			m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
+		// Right 
+		else if (keyState[(unsigned char)'l'] == BUTTON_DOWN)
+		{
+			//printf("Move cube right \n");
+			m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
+		// Forward 
+		else if (keyState[(unsigned char)'i'] == BUTTON_DOWN)
+		{
+			//printf("Move cube forward \n");
+			m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
+		// Back 
+		else if (keyState[(unsigned char)'k'] == BUTTON_DOWN)
+		{
+			//printf("Move cube back \n");
+			m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
+			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
+			m_LastBulletVelocity = m_CurrentBulletVelocity;
+		}
+
 		if (!SetBulletDirection)
 		{
-			m_CurrentVelocity = m_pModel->GetLastPlayerVelocity() * 7.0f;
+			// m_CurrentVelocity = m_pModel->GetLastPlayerVelocity() * 7.0f;
+			m_CurrentVelocity = m_LastBulletVelocity;
 			SetBulletDirection = true;
 		}
 			
@@ -335,19 +420,19 @@ void Entity::LeaderFollowing()
 {
 	if (m_bLeaderDead)
 	{
-		m_pModel->SetLeader();
+		m_pModel->SetLeader(); // create new leader
 		m_bLeaderDead = false;
 	}
 	
 	if (m_pModel->IsLeader())
 	{
-		Seek(m_pModel->GetPlayerPosition());
+		Seek(m_pModel->GetPlayerPosition());  // Leader follows player
 	}
 
 	else
 	{
 		float Distance = 75.0f;
-		vec3 BackPosition = m_pModel->GetLeaderPosition() - m_CurrentLeaderVelocity * Distance;
+		vec3 BackPosition = m_pModel->GetLeaderPosition() - m_CurrentLeaderVelocity * Distance; // other enemies follow the leader
 		
 		Seek(BackPosition);
 	}
@@ -434,4 +519,14 @@ vec2 Entity::GetTextPosition()
 void Entity::SetLeaderDead()
 {
 	m_bLeaderDead = true;
+}
+
+void Entity::AddToScore(int _Score)
+{
+	m_iScore += _Score;
+}
+
+std::string Entity::GetScore()
+{
+	return std::to_string(m_iScore);
 }

@@ -157,6 +157,12 @@ void GameScene::RenderText()
 			it->setText(m_entities.begin()->GetAIName());	
 			it->setPosition(m_entities.begin()->GetTextPosition());
 		}
+
+		else if (it->GetTextType() == SCORE)
+		{
+			it->setText(m_entities.begin()->GetScore());
+			//it->setPosition(m_entities.begin()->GetTextPosition());
+		}
 		
 		it->Render();
 	}
@@ -230,15 +236,20 @@ void GameScene::CreateText()
 	Title.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(Title);
 
-	TextLabel Score(STATIC, "Score:", "freeagent.ttf");
-	Score.setPosition(glm::vec2(1250, 860));
-	Score.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
-	AddText(Score);
+	TextLabel ScoreText(STATIC, "Score:", "freeagent.ttf");
+	ScoreText.setPosition(glm::vec2(1200, 860));
+	ScoreText.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	AddText(ScoreText);
 
 	TextLabel AIName(AIDESCRIPTION, "", "freeagent.ttf");
 	AIName.setPosition(glm::vec2(700, 860));
 	AIName.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(AIName);
+
+	TextLabel ScoreValue(SCORE, "", "freeagent.ttf");
+	ScoreValue.setPosition(glm::vec2(1430, 860));
+	ScoreValue.setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	AddText(ScoreValue);
 }
 
 CClock* GameScene::GetClock()
@@ -308,6 +319,8 @@ void GameScene::CheckCollisions()
 				{
 					it->SetLeaderDead();
 				}
+
+				it->AddToScore(10);
 			}
 
 			//if ((*it2)->GetCurrentVelocity() == vec3(0.0f, 0.0f, 0.0f))
