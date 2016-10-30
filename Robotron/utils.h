@@ -56,9 +56,21 @@ enum TextType
 {
 	STATIC,
 	AIDESCRIPTION,
-	SCORE
+	SCORE,
+	LEVEL
 };
 
+enum AIBehaviour
+{
+	NONENEMY,
+	SEEK,
+	FLEE,
+	PURSUE,
+	EVADE,
+	WANDER,
+	LEADERFOLLOW,
+	FLOCK
+};
 
 class Utils
 {
@@ -70,7 +82,6 @@ public:
 	static void SetVerticesAndIndices(ModelType _model);
 	static GLfloat* GetVertices();
 	static GLuint* GetIndices();
-
 
 	static GLfloat* m_vertices;
 	static GLuint* m_indices;

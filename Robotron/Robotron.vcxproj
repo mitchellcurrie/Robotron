@@ -74,6 +74,7 @@
     <ClInclude Include="clock.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="gameScene.h" />
+    <ClInclude Include="level.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="TextLabel.h" />
@@ -90,6 +91,7 @@
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="gameScene.cpp" />
+    <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />

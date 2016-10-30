@@ -22,7 +22,7 @@ public:
 
 	Entity();
 	~Entity();
-	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader);
+	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader, AIBehaviour _behaviour, float _maxVelocity);
 	virtual void Render();
 	bool IsPlayer();
 	static void entityKeyboard(unsigned char key, int x, int y);
@@ -50,6 +50,8 @@ public:
 	void SetLeaderDead();
 	void AddToScore(int _Score);
 	std::string GetScore();
+	void SetAIBehaviour(AIBehaviour _behaviour);
+	AIBehaviour GetAIBehaviour();
 	
 private:
 
@@ -70,5 +72,6 @@ private:
 	static vec2 m_textPosition;
 	static bool m_bLeaderDead;
 	static vec3 m_LastBulletVelocity;
+	AIBehaviour m_Behaviour;
 };
 

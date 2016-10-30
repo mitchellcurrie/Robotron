@@ -18,7 +18,6 @@
 #include "freeglut.h"
 #include "model.h"
 #include "ShaderLoader.h"
-#include "utils.h"
 
 vec3 Model::m_PlayerPosition = vec3(0.0f, 0.0f, 0.0f);
 vec3 Model::m_LeaderPosition = vec3(0.0f, 0.0f, 0.0f);
@@ -462,7 +461,14 @@ vec3 Model::CheckEdgeCollision()
 
 bool Model::IsAtEdge()
 {
-	float fMapSize = 14.49f;   // slightly smaller than edge collision function above
+	float fMapSize = 0.0f;
+	
+	if (m_ModelType == CUBE) // for enemies wandering
+		fMapSize = 14.49f;   // slightly smaller than edge collision function above
+	
+	else if (m_ModelType == DOT) // for bullets
+		fMapSize = 14.50f;
+
 
 	if (m_position.x > fMapSize)
 		return true;

@@ -46,7 +46,7 @@ Entity::Entity()
 
 	// To update:
 	m_fMaxForce = 0.05f;
-	m_fMaxVelocity = 0.05f;
+	m_fMaxVelocity = 0.00f;
 	SetBulletDirection = false;
 	srand(time(NULL));
 }
@@ -56,11 +56,13 @@ Entity::~Entity()
 
 }
 
-void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader)
+void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader, AIBehaviour _behaviour, float _maxVelocity)
 {
 	m_pModel = new Model;
 	m_pModel->Initialise(_model, _numVertices, _camera, _position, _IsPlayer, _IsLeader);
 	m_EntityType = _entity;
+	m_Behaviour = _behaviour;
+	m_fMaxVelocity = _maxVelocity;
 
 	if (m_EntityType == PLAYER)
 		m_start = std::clock();
@@ -157,7 +159,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			m_duration = (std::clock() - m_start) / (double)CLOCKS_PER_SEC;
 			
-			if (m_duration > 0.15f)
+			if (m_duration > 0.17f)
 			{
 				printf("Fire \n");
 				m_bBulletFired = true;
@@ -169,34 +171,71 @@ void Entity::SetPositions(float _fDeltaTick)
 	}
 
 	else if (m_EntityType == ENEMY)// Enemy movement
-	{		
-		/*Seek(m_pModel->GetPlayerPosition());
-		m_AIName = "Seek";
-		m_textPosition = vec2(720, 860);*/
+	{	
+		switch (m_Behaviour)
+		{
+			case SEEK:
+			{
+				Seek(m_pModel->GetPlayerPosition());
+				m_AIName = "Seek";
+				m_textPosition = vec2(720, 860);
+			}
+			break;
 
-		/*Flee(m_pModel->GetPlayerPosition());
-		m_AIName = "Flee";
-		m_textPosition = vec2(720, 860);*/
+			case FLEE:
+			{
+				Flee(m_pModel->GetPlayerPosition());
+				m_AIName = "Flee";
+				m_textPosition = vec2(720, 860);
+			}
+			break;
 
-		/*Pursue();
-		m_AIName = "Pursue";
-		m_textPosition = vec2(670, 860);*/ 
+			case PURSUE:
+			{
+				Pursue();
+				m_AIName = "Pursue";
+				m_textPosition = vec2(670, 860);
+			}
+			break;
 
-		/*Evade();
-		m_AIName = "Evade";
-		m_textPosition = vec2(690, 860);*/
+			case EVADE:
+			{
+				Evade();
+				m_AIName = "Evade";
+				m_textPosition = vec2(690, 860);
+			}
+			break;
 
-		/*Wander();
-		m_AIName = "Wander";
-		m_textPosition = vec2(680, 860);*/
+			case WANDER:
+			{
+				Wander();
+				m_AIName = "Wander";
+				m_textPosition = vec2(680, 860);
+			}
+			break;
 
-	    LeaderFollowing();
-		m_AIName = "Leader Following";
-		m_textPosition = vec2(495, 860);
+			case LEADERFOLLOW:
+			{
+				LeaderFollowing();
+				m_AIName = "Leader Following";
+				m_textPosition = vec2(495, 860);
+			}
+			break;
 
-		/*Flocking();
-		m_AIName = "Flocking";
-		m_textPosition = vec2(658, 860);*/
+			case FLOCK:
+			{
+				Flocking();
+				m_AIName = "Flocking";
+				m_textPosition = vec2(658, 860);
+			}
+			break;
+
+			default:
+			{
+
+			}
+			break;
+		}
 
 		if (m_pModel->IsLeader())
 			m_CurrentLeaderVelocity = m_CurrentVelocity;
@@ -529,4 +568,14 @@ void Entity::AddToScore(int _Score)
 std::string Entity::GetScore()
 {
 	return std::to_string(m_iScore);
+}
+
+void Entity::SetAIBehaviour(AIBehaviour _behaviour)
+{
+	m_Behaviour = _behaviour;
+}
+
+AIBehaviour Entity::GetAIBehaviour()
+{
+	return m_Behaviour;
 }
