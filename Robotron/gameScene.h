@@ -32,6 +32,7 @@ public:
 	void AddEntity(Entity* _entity);
 	void AddEnemy(Entity* _enemy);
 	void AddPlayerBullet(Entity* _entity);
+	void AddEnemyBullet(Entity* _entity);
 	void AddText(TextLabel* _text);
 
 	void RenderEntities(); // For entities
@@ -79,6 +80,7 @@ private:
 	std::vector<Entity*> m_enemies;
 	std::vector<TextLabel*> m_textLabels;
 	std::vector<Entity*> m_playerBullets;
+	std::vector<Entity*> m_enemyBullets;
 
 	// Pointers
 	Entity* m_pBullet;

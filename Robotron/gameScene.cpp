@@ -69,6 +69,11 @@ void GameScene::AddPlayerBullet(Entity* _entity)
 	m_playerBullets.push_back(_entity);
 }
 
+void GameScene::AddEnemyBullet(Entity* _entity)
+{
+	m_enemyBullets.push_back(_entity);
+}
+
 void GameScene::AddText(TextLabel* _text)
 {
 	m_textLabels.push_back(_text);
@@ -76,13 +81,14 @@ void GameScene::AddText(TextLabel* _text)
 
 void GameScene::CheckBullets()
 {	
+	//////// Player Bullets  //////////////////
 	// Bullet fired
 	if (Entity::IsBulletFired())
 	{
-		m_playerBullets.at(m_pPlayer->GetBulletCounter())->SetActivity(true); // set next bullet in vector to active
-		m_playerBullets.at(m_pPlayer->GetBulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
-		m_playerBullets.at(m_pPlayer->GetBulletCounter())->SetModelPosition(m_pPlayer->GetModel()->GetPlayerPosition()); // Set position to players current position
-		m_pPlayer->IncrementBulletCounter(); // increment the bullet counter for the next bullet fired
+		m_playerBullets.at(Entity::GetPlayerBulletCounter())->SetActivity(true); // set next bullet in vector to active
+		m_playerBullets.at(Entity::GetPlayerBulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+		m_playerBullets.at(Entity::GetPlayerBulletCounter())->SetModelPosition(m_pPlayer->GetModel()->GetPlayerPosition()); // Set position to players current position
+		Entity::IncrementPlayerBulletCounter(); // increment the bullet counter for the next bullet fired
 	}
 
 	// Check if any bullets need to be deleted - either through collision with object or edge of map
@@ -91,7 +97,32 @@ void GameScene::CheckBullets()
 		if ((*it)->ToDelete())
 		{
 			(*it)->SetActivity(false); // set to inactive
-			(*it)->ResetVelocityForBullets(); // reset velocity
+			(*it)->ResetVelocityForPlayerBullets(); // reset velocity
+		}
+	}
+
+	//////// Enemy Bullets  //////////////////
+
+	// Randomise whether each enemy should fire
+
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		if ((rand() % 130 == 1) && (*it)->IsActive()) // 1/100 chance of firing
+		{
+			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->SetActivity(true); // set next bullet in vector to active
+			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->SetModelPosition((*it)->GetModel()->GetPosition()); // Set position to enemies current position
+			Entity::IncrementEnemyBulletCounter();
+		}
+	}
+
+	// Check if any bullets need to be deleted - either through collision with object or edge of map 
+	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++)
+	{
+		if ((*it)->ToDelete())
+		{
+			(*it)->SetActivity(false); // set to inactive
+			(*it)->ResetVelocity(); // reset velocity
 		}
 	}
 }
@@ -117,7 +148,14 @@ void GameScene::RenderEntities()
 			(*it)->Render();
 	}
 
-	// Redner player and map
+	// Render enemy bullets
+	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++)
+	{
+		if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
+			(*it)->Render();
+	}
+
+	// Render player and map
 	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
 	{		
 		(*it)->Render();	
@@ -192,13 +230,22 @@ void GameScene::CreateEntities()
 		AddPlayerBullet(m_pBullet);
 	}
 
+	// Enemy Bullets
+	for (int x{ 0 }; x < 40; x++)
+	{
+		m_pBullet = new Entity;
+		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);
+		m_pBullet->SetAsEnemyBullet();
+		AddEnemyBullet(m_pBullet);
+	}
+
 	////////////////// Enemies //////////////////////////////////
  
 	float fMaxVelocity = 0.05f;
 
 	// 1
 	m_pEnemy = new Entity;
-	m_pEnemy->SetAsLeader();
+	m_pEnemy->SetLeader(true);
 	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.1f, 0.0f, 0.1f), WANDER, fMaxVelocity); //GetRandomBehaviour()
 	AddEnemy(m_pEnemy);
 
@@ -290,14 +337,18 @@ void GameScene::UpdateEntities()
 	{
 		(*it)->GetModel()->ResetToStartingPosition();
 		(*it)->SetActivity(false);
+		(*it)->SetLeader(false);
 	}
+
+	//Reset Leader back
+	m_enemies.at(0)->SetLeader(true);
 
 	// Spawn enemies based on level
 	if (m_iCurrentLevel == 1)
 	{
 		for (int x{ 0 }; x < 5; x++) // Number of enemies
 		{
-			m_enemies.at(x)->SetAIBehaviour(FLEE);
+			m_enemies.at(x)->SetAIBehaviour(FLEE); 
 			m_enemies.at(x)->SetActivity(true);
 			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
 		}
@@ -454,18 +505,28 @@ CClock* GameScene::GetClock()
 
 void GameScene::SetPositions(float _fDeltaTick)
 {
+	//Player, Map
 	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
 	{
 		(*it)->SetPositions(_fDeltaTick);
 	}
 
+	// Enemies
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
 		if ((*it)->IsActive())
 			(*it)->SetPositions(_fDeltaTick);
 	}
 
+	//Player Bullets
 	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++)
+	{
+		if ((*it)->IsActive())
+			(*it)->SetPositions(_fDeltaTick);
+	}
+
+	//Enemy Bullets
+	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++)
 	{
 		if ((*it)->IsActive())
 			(*it)->SetPositions(_fDeltaTick);
@@ -491,22 +552,41 @@ void GameScene::CheckCollisions()
 		}
 	}
 
+	// Enemy bullet and player collisions
+	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	{
+		for (auto it2 = m_enemyBullets.begin(); it2 != m_enemyBullets.end(); it2++)
+		{
+			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+				((*it)->GetEntityType() == PLAYER) && ((*it2)->IsActive()))
+			{
+				(*it)->SetToDead();
+				(*it)->ReducePlayerLives();
+				return;
+
+				//break;
+			}
+		}
+	}
+
 	// Enemy and enemy collisions
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
 		for (auto it2 = m_enemies.begin(); it2 != m_enemies.end(); it2++)
 		{
 			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&
-				((*it)->IsActive()) && ((*it2)->IsActive()) &&
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&   // within a distance
 				(((*it)->GetModel()->GetPosition().x) != ((*it2)->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
-				(((*it)->GetModel()->GetPosition().z) != ((*it2)->GetModel()->GetPosition().z)))
+				((*it)->GetModel()->GetPosition().z) != ((*it2)->GetModel()->GetPosition().z) &&
+				((*it)->IsActive()) && ((*it2)->IsActive()))
 			{
-				(*it)->Flee((*it2)->GetModel()->GetPosition()); // Flee if enemies are too close together
+					(*it)->Flee((*it2)->GetModel()->GetPosition());
+				//		break;
 			}
+
 		}
 	}
-
 
 	// Player bullet and enemy collisions
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
@@ -523,9 +603,29 @@ void GameScene::CheckCollisions()
 				if ((*it)->GetModel()->IsLeader())
 				{
 					(*it)->SetLeaderDead();
+					(*it)->SetLeader(false);
+					(*it)->GetModel()->SetLeader(false);
+
 				}
 
 				(*it)->AddToScore(10);
+
+				//break;
+			}
+		}
+	}
+
+	// Player bullet and enemy bullet collisions
+	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++)
+	{
+		for (auto it2 = m_playerBullets.begin(); it2 != m_playerBullets.end(); it2++)
+		{
+			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 0.5f) &&   // within a distance
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 0.5f) &&
+				((*it2)->IsActive()) && ((*it)->IsActive()))
+			{
+				(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy bullet
+				(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
 
 				//break;
 			}
@@ -640,11 +740,12 @@ void GameScene::Update()
 		UpdateEntities();   // start the next level
 		SetLevelComplete(false);
 	}
-
+	
 	CheckEnemies();  // Check if any enemies need to be deactivated - if set "to delete"
 	CheckBullets();  // Check if any bullets need to be deactivated - if set "to delete"
-	CheckCollisions();
 	SetPositions(m_fDeltaTick);  // Set all entity positions	
+	CheckCollisions();
+	
 }
 
 void GameScene::SetUp()
@@ -665,6 +766,12 @@ void GameScene::SetUp()
 void GameScene::SetAllBulletsInactive()
 {
 	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++)
+	{
+		(*it)->SetActivity(false);
+		//(*it)->ResetVelocityForBullets();		
+	}
+
+	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++)
 	{
 		(*it)->SetActivity(false);
 		//(*it)->ResetVelocityForBullets();		

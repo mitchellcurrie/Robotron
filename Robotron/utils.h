@@ -70,7 +70,7 @@ enum AIBehaviour
 	EVADE,
 	WANDER,
 	LEADERFOLLOW,
-	FLOCK
+	FLOCK,
 };
 
 class Utils

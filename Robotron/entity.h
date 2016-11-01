@@ -28,6 +28,10 @@ public:
 	
 	static void entityKeyboard(unsigned char key, int x, int y);
 	static void entityKeyboard_up(unsigned char key, int x, int y);
+	static void IncrementPlayerBulletCounter();
+	static void IncrementEnemyBulletCounter();
+	static int GetPlayerBulletCounter();
+	static int GetEnemyBulletCounter();
 
 	// AI functions
 	void Seek(vec3 _playerPosition);
@@ -49,7 +53,8 @@ public:
 	void ReverseCurrentVelocity();
 	void ResetCurrentVelocity();
 	void SetMaxVelocity(float _fMaxVelocity);
-	void ResetVelocityForBullets();
+	void ResetVelocityForPlayerBullets();
+	void ResetVelocity();
 
 	static bool IsBulletFired();
 	bool ToDelete();
@@ -57,6 +62,7 @@ public:
 	bool IsActive();
 	bool IsLeader();
 	bool IsPlayerDead();
+	//bool IsEnemyFiring();
 
 	std::string GetAIName();
 	vec2 GetTextPosition();
@@ -65,9 +71,8 @@ public:
 	Model* GetModel();
 	EntityType GetEntityType();
 	int GetPlayerLives();
-	int GetBulletCounter();
 	
-	void SetAsLeader();
+	void SetLeader(bool _b);
 	void SetAsPlayer();	
 	void SetToDead();
 	void SetLeaderDead();
@@ -75,12 +80,13 @@ public:
 	void SetModelPosition(vec3 _position);
 	void SetBulletFired(bool _b);
 	void SetToAlive();
+	void SetAsEnemyBullet();
 	
 	void AddToScore(int _Score);	
 	void ReducePlayerLives();
 	void ResetPlayerLives();
 	void ResetScore();	
-	void IncrementBulletCounter();
+	
 	
 private:
 
@@ -90,7 +96,8 @@ private:
 	static vec3 m_CurrentLeaderVelocity;
 	static vec3 m_LastBulletVelocity;
 	static int m_iPlayerLives;
-	static int m_iBulletCounter;
+	static int m_iPlayerBulletCounter;
+	static int m_iEnemyBulletCounter;
 	static int m_iScore;
 	static bool m_bLeaderDead;
 	static bool m_bBulletFired;
@@ -112,5 +119,7 @@ private:
 	bool m_bIsPlayer;
 	bool m_bIsDead;
 	bool m_bActive;	
+	bool m_bIsEnemyBullet;
+//	bool m_bEnemyToFire;
 };
 

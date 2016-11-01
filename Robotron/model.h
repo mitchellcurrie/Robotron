@@ -44,7 +44,7 @@ public:
 
 	void SetToBeDeleted();
 	void SetLastPlayerVelocity(vec3 _velocity);	
-	void SetLeader();
+	void SetLeader(bool _b);
 	void SetPosition(vec3 _position);
 
 	void ResetToBeDeleted();

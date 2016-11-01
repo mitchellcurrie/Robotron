@@ -41,7 +41,8 @@ bool Entity::m_bLeaderDead = false;
 
 int Entity::m_iScore = 0;
 int Entity::m_iPlayerLives = 3;
-int Entity::m_iBulletCounter = 0;
+int Entity::m_iPlayerBulletCounter = 0;
+int Entity::m_iEnemyBulletCounter = 0;
 
 
 Entity::Entity()
@@ -56,6 +57,7 @@ Entity::Entity()
 	m_bIsPlayer = false;
 	m_bIsDead = false;
 	m_bActive = false;
+	m_bIsEnemyBullet = false;
 	std::string m_AIName = "";
 	vec2 m_textPosition = vec2(0.0f, 0.0f);
 	srand(time(NULL));
@@ -250,88 +252,138 @@ void Entity::SetPositions(float _fDeltaTick)
 		if (m_pModel->IsLeader())
 			m_CurrentLeaderVelocity = m_CurrentVelocity;
 	}
-
+	
 	else if ((m_EntityType == BULLET) && (m_bActive))
 	{
-		////////////  BULLET Direction ////////////////
-
-		//if (m_pModel->IsAtEdge())
-		//{
-		//	m_pModel->SetToBeDeleted(); // m_bToBeDeleted = true;
-		//}
-
-		float fSpeed = 45;
-
-		// Forward left 
-		if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+		//Player Bullets
+		if (!m_bIsEnemyBullet)  
 		{
-			//printf("Move cube forward left \n");
-			m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
+			float fSpeed = 45.0f;
+
+			// Forward left 
+			if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+			{
+				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Forward right 
+			else if ((keyState[(unsigned char)'l'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+			{
+				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Backward left 
+			else if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'k'] == BUTTON_DOWN))
+			{
+				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Backward right 
+			else if ((keyState[(unsigned char)'k'] == BUTTON_DOWN) && (keyState[(unsigned char)'l'] == BUTTON_DOWN))
+			{
+				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Left 
+			else if (keyState[(unsigned char)'j'] == BUTTON_DOWN)
+			{
+				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Right 
+			else if (keyState[(unsigned char)'l'] == BUTTON_DOWN)
+			{
+				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Forward 
+			else if (keyState[(unsigned char)'i'] == BUTTON_DOWN)
+			{
+				m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Back 
+			else if (keyState[(unsigned char)'k'] == BUTTON_DOWN)
+			{
+				m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			else
+			{
+				m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
 		}
-
-		// Forward right 
-		else if ((keyState[(unsigned char)'l'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+		//Enemy Bullets
+		else
 		{
-			//printf("Move cube forward right \n");
-			m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
-		}
+			float fSpeed = 9.0f;
 
-		// Backward left 
-		else if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'k'] == BUTTON_DOWN))
-		{
-			//printf("Move cube backward left \n");
-			m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
-		}
+			int iRandom = rand() % 8;
 
-		// Backward right 
-		else if ((keyState[(unsigned char)'k'] == BUTTON_DOWN) && (keyState[(unsigned char)'l'] == BUTTON_DOWN))
-		{
-			//printf("Move cube backward right \n");
-			m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
-		}
+			// Forward left 
+			if (iRandom == 0)
+			{
+				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
 
-		// Left 
-		else if (keyState[(unsigned char)'j'] == BUTTON_DOWN)
-		{
-			//printf("Move cube left \n");
-			m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
-		}
+			// Forward right 
+			else if (iRandom == 1)
+			{
+				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
 
-		// Right 
-		else if (keyState[(unsigned char)'l'] == BUTTON_DOWN)
-		{
-			//printf("Move cube right \n");
-			m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
-		}
+			// Backward left 
+			else if (iRandom == 2)
+			{
+				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
 
-		// Forward 
-		else if (keyState[(unsigned char)'i'] == BUTTON_DOWN)
-		{
-			//printf("Move cube forward \n");
-			m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
-		}
+			// Backward right 
+			else if (iRandom == 3)
+			{
+				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
 
-		// Back 
-		else if (keyState[(unsigned char)'k'] == BUTTON_DOWN)
-		{
-			//printf("Move cube back \n");
-			m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
-			//m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
-			m_LastBulletVelocity = m_CurrentBulletVelocity;
+			// Left 
+			else if (iRandom == 4)
+			{
+				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Right 
+			else if (iRandom == 5)
+			{
+				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Forward 
+			else if (iRandom == 6)
+			{
+				m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
+
+			// Back 
+			else if (iRandom == 7)
+			{
+				m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
+				m_LastBulletVelocity = m_CurrentBulletVelocity;
+			}
 		}
 
 		if (!m_bSetBulletDirection)
@@ -339,8 +391,7 @@ void Entity::SetPositions(float _fDeltaTick)
 			// m_CurrentVelocity = m_pModel->GetLastPlayerVelocity() * 7.0f;
 			m_CurrentVelocity = m_LastBulletVelocity;
 			m_bSetBulletDirection = true;
-		}
-			
+		}			
 	}
 }
 
@@ -497,7 +548,7 @@ void Entity::LeaderFollowing()
 	{
 		if (m_bActive)
 		{
-			m_pModel->SetLeader(); // create new leader
+			m_pModel->SetLeader(true); // create new leader
 			m_bLeaderDead = false;
 		}		
 	}
@@ -530,7 +581,7 @@ void Entity::Flocking()
 	{
 		if (m_bActive)
 		{
-			m_pModel->SetLeader(); // create new leader
+			m_pModel->SetLeader(true); // create new leader
 			m_bLeaderDead = false;
 		}
 	}
@@ -646,9 +697,10 @@ AIBehaviour Entity::GetAIBehaviour()
 	return m_Behaviour;
 }
 
-void Entity::SetAsLeader()
+void Entity::SetLeader(bool _b)
 {
-	m_bIsLeader = true;
+	m_bIsLeader = _b;
+//	m_pModel->SetLeader(_b);
 }
 
 void Entity::SetAsPlayer()
@@ -718,23 +770,42 @@ void Entity::SetBulletFired(bool _b)
 	m_bBulletFired = _b;
 }
 
-int Entity::GetBulletCounter()
+int Entity::GetPlayerBulletCounter()
 {
-	return m_iBulletCounter;
+	return m_iPlayerBulletCounter;
 }
 
-void Entity::IncrementBulletCounter()
+int Entity::GetEnemyBulletCounter()
 {
-	if (m_iBulletCounter == 9)
-		m_iBulletCounter = 0;
+	return m_iEnemyBulletCounter;
+}
+
+void Entity::IncrementPlayerBulletCounter()
+{
+	if (m_iPlayerBulletCounter == 9)
+		m_iPlayerBulletCounter = 0;
 
 	else
-		m_iBulletCounter++;
+		m_iPlayerBulletCounter++;
 }
 
-void Entity::ResetVelocityForBullets()
+void Entity::IncrementEnemyBulletCounter()
+{
+	if (m_iEnemyBulletCounter == 39)
+		m_iEnemyBulletCounter = 0;
+
+	else
+		m_iEnemyBulletCounter++;
+}
+
+void Entity::ResetVelocityForPlayerBullets()
 {
 	m_CurrentBulletVelocity = vec3(0.0f, 0.0f, 0.0f);
+	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
+}
+
+void Entity::ResetVelocity()
+{
 	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 }
 
@@ -747,6 +818,16 @@ void Entity::SetToAlive()
 {
 	m_bIsDead = false;
 }
+
+void Entity::SetAsEnemyBullet()
+{
+	m_bIsEnemyBullet = true;
+}
+
+//bool Entity::IsEnemyFiring()
+//{
+//	return m_bEnemyToFire;
+//}
 
 
 
