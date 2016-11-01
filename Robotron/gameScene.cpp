@@ -17,6 +17,7 @@
 
 #include "gameScene.h"
 
+// Static variables
 GameScene* GameScene::s_pGameScene{ 0 };
 
 GameScene::GameScene()
@@ -30,6 +31,7 @@ GameScene::GameScene()
 	m_pTextLabel = nullptr;
 	m_iCurrentLevel = 1;
 	m_bLevelComplete = false;
+	m_fDeltaTick = 0.0f;
 }
 GameScene::~GameScene()
 {
@@ -57,9 +59,14 @@ void GameScene::AddEntity(Entity* _entity)
 	m_entities.push_back(_entity);
 }
 
-void GameScene::AddBullet(Entity* _entity)
+void GameScene::AddEnemy(Entity* _entity)
 {
-	m_bullets.push_back(_entity);
+	m_enemies.push_back(_entity);
+}
+
+void GameScene::AddPlayerBullet(Entity* _entity)
+{
+	m_playerBullets.push_back(_entity);
 }
 
 void GameScene::AddText(TextLabel* _text)
@@ -69,109 +76,79 @@ void GameScene::AddText(TextLabel* _text)
 
 void GameScene::CheckBullets()
 {	
-	std::vector<Entity*> bulletsToKeep;
-
+	// Bullet fired
 	if (Entity::IsBulletFired())
 	{
-		m_pBullet = new Entity;
-		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, m_pPlayer->GetModel()->GetPlayerPosition(), false, false, NONENEMY, 0.0f);
-		AddBullet(m_pBullet);
+		m_playerBullets.at(m_pPlayer->GetBulletCounter())->SetActivity(true); // set next bullet in vector to active
+		m_playerBullets.at(m_pPlayer->GetBulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+		m_playerBullets.at(m_pPlayer->GetBulletCounter())->SetModelPosition(m_pPlayer->GetModel()->GetPlayerPosition()); // Set position to players current position
+		m_pPlayer->IncrementBulletCounter(); // increment the bullet counter for the next bullet fired
 	}
 
-	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
+	// Check if any bullets need to be deleted - either through collision with object or edge of map
+	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++)
 	{
-		if (!(*it)->ToDelete())
+		if ((*it)->ToDelete())
 		{
-			bulletsToKeep.push_back(*it);
+			(*it)->SetActivity(false); // set to inactive
+			(*it)->ResetVelocityForBullets(); // reset velocity
 		}
 	}
-
-	while (!m_bullets.empty())
-	{
-		DeleteEntity(m_bullets.back());
-		m_bullets.pop_back();
-	}
-
-	m_bullets = bulletsToKeep;
 }
 
-void GameScene::CheckEntities()
+void GameScene::CheckEnemies()
 {
-	std::vector<Entity*> entitiesToKeep;
-
-	//if (Entity::IsBulletFired())    // Change this to be able to add new enemies
-	//{
-	//	m_pBullet = new Entity;
-	//	m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, m_pPlayer->GetModel()->GetPlayerPosition(), false, false);
-	//	AddBullet(m_pBullet);
-	//}
-
-	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	// Check if any enemies need to be deleted - either through collision with bullet or player
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
-		if (!((*it))->ToDelete())
+		if ((*it)->ToDelete())
 		{
-			entitiesToKeep.push_back(*it);
+			(*it)->SetActivity(false); // set to inactive
 		}
 	}
-
-	while (!m_entities.empty())
-	{
-		DeleteEntity(m_entities.back());
-		m_entities.pop_back();
-	}
-
-	m_entities = entitiesToKeep;
-}
-
-void GameScene::DeleteEntity(Entity* _entity)
-{
-	/*delete _bullet;
-	_bullet = nullptr;*/
-
-	// Need another way to delete the bullet memory, at the moment just popping from vector without deleting first
-}
-
-void GameScene::DeleteEntity(Entity _entity)
-{
-	/*delete _bullet;
-	_bullet = nullptr;*/
-
-	// Need another way to delete the entity memory, at the moment just popping from vector without deleting first
 }
 
 void GameScene::RenderEntities()
 {
-	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
+	// Render player bullets
+	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++)
 	{
-		if ((*it)->GetModel() != nullptr)
+		if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
 			(*it)->Render();
 	}
 
+	// Redner player and map
 	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
 	{		
 		(*it)->Render();	
+	}
+
+	// Render enemies
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		if ((*it)->IsActive())
+			(*it)->Render();
 	}
 }
 
 void GameScene::RenderText()
 {
+	// Render text
 	for (auto it = m_textLabels.begin(); it != m_textLabels.end(); it++)
 	{
 		if ((*it)->GetTextType() == AIDESCRIPTION)
 		{
 			if (m_iCurrentLevel < 8)
 			{
-				(*it)->setText((*m_entities.begin())->GetAIName());
-				(*it)->setPosition((*m_entities.begin())->GetTextPosition());
+				(*it)->setText((*m_enemies.begin())->GetAIName());
+				(*it)->setPosition((*m_enemies.begin())->GetTextPosition());
 			}
 
 			else
 			{
 				(*it)->setText("Multiple");
 				(*it)->setPosition(vec2(658, 860));
-			}
-			
-			
+			}		
 		}
 
 		else if ((*it)->GetTextType() == SCORE)
@@ -184,6 +161,11 @@ void GameScene::RenderText()
 		{
 			(*it)->setText(std::to_string(m_iCurrentLevel));
 		}
+
+		else if ((*it)->GetTextType() == LIVES)
+		{
+			(*it)->setText((*m_entities.begin())->GetLives());
+		}
 		
 		(*it)->Render();
 	}
@@ -191,230 +173,98 @@ void GameScene::RenderText()
 
 void GameScene::CreateEntities()
 {
-	m_bullets.clear();  // Need to clear the memoery of the objects here, not just clear the vectors!!
-	m_entities.clear();  // Need to clear the memoery of the objects here, not just clear the vectors!!
-						// Also on collisions, need to delete memory not just clear vectors!
-
-	
 	// Player Cube
 	m_pPlayer = new Entity;
-	m_pPlayer->Initialise(PLAYER, CUBE, 36, m_Camera, vec3(-12.0f, 0.0f, 12.0f), true, false, NONENEMY, 0.0f);
+	m_pPlayer->SetAsPlayer();
+	m_pPlayer->Initialise(PLAYER, CUBE, 36, m_Camera, vec3(-12.0f, 0.0f, 12.0f), NONENEMY, 0.0f);	
 	AddEntity(m_pPlayer);
 
 	// Map Quad
 	m_pMap = new Entity;
-	m_pMap->Initialise(MAP, QUAD, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), false, false, NONENEMY, 0.0f);
+	m_pMap->Initialise(MAP, QUAD, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);
 	AddEntity(m_pMap);
 
-	if (m_iCurrentLevel == 1)
+	// Player Bullets
+	for (int x{ 0 }; x < 10; x++)
 	{
-		// Enemy Cubes
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, FLEE, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, FLEE, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, FLEE, 0.05f);
-		AddEntity(m_pEnemy);
+		m_pBullet = new Entity;
+		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);
+		AddPlayerBullet(m_pBullet);
 	}
 
-	else if (m_iCurrentLevel == 2)
-	{
-		// Enemy Cubes
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, EVADE, 0.05f);
-		AddEntity(m_pEnemy);
+	////////////////// Enemies //////////////////////////////////
+ 
+	float fMaxVelocity = 0.05f;
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, EVADE, 0.05f);
-		AddEntity(m_pEnemy);
+	// 1
+	m_pEnemy = new Entity;
+	m_pEnemy->SetAsLeader();
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.1f, 0.0f, 0.1f), WANDER, fMaxVelocity); //GetRandomBehaviour()
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, EVADE, 0.05f);
-		AddEntity(m_pEnemy);
-	}
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), WANDER, fMaxVelocity); //GetRandomBehaviour()
+	AddEnemy(m_pEnemy);
 
-	else if (m_iCurrentLevel == 3)
-	{
-		// Enemy Cubes
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, WANDER, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, 2.0f), WANDER, fMaxVelocity); //GetRandomBehaviour()
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, WANDER, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, WANDER, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, -2.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), false, false, WANDER, 0.05f);
-		AddEntity(m_pEnemy);
-	}
+	// 6
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-	else if (m_iCurrentLevel == 4)
-	{
-		// Enemy Cubes
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, SEEK, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, SEEK, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, -2.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, SEEK, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, 2.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), false, false, SEEK, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(1.0f, 0.0f, 1.0f), false, false, SEEK, 0.05f);
-		AddEntity(m_pEnemy);
-	}
+	// 11
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-	else if (m_iCurrentLevel == 5)
-	{
-		// Enemy Cubes
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, LEADERFOLLOW, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 5.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, LEADERFOLLOW, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, LEADERFOLLOW, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), false, false, LEADERFOLLOW, 0.05f);
-		AddEntity(m_pEnemy);
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	AddEnemy(m_pEnemy);
 
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(1.0f, 0.0f, 1.0f), false, false, LEADERFOLLOW, 0.05f);
-		AddEntity(m_pEnemy);
-	}
-
-	else if (m_iCurrentLevel == 6)
-	{
-		// Enemy Cubes
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, FLOCK, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, FLOCK, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, FLOCK, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), false, false, FLOCK, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(1.0f, 0.0f, 1.0f), false, false, FLOCK, 0.05f);
-		AddEntity(m_pEnemy);
-	}
-
-	else if (m_iCurrentLevel == 7)
-	{
-		// Enemy Cubes
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, PURSUE, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, PURSUE, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, PURSUE, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), false, false, PURSUE, 0.05f);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(1.0f, 0.0f, 1.0f), false, false, PURSUE, 0.05f);
-		AddEntity(m_pEnemy);
-	}
-
-	else // After level 7
-	{	
-		float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 350.0f);
-	//	float fMaxVelocity = 0.0001f;  // To test positions
-	//	float fMaxVelocity = 0.05f;
-	
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), false, true, SEEK, fMaxVelocity); //GetRandomBehaviour()
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), false, true, SEEK, fMaxVelocity); //GetRandomBehaviour()
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, 2.0f), false, true, SEEK, fMaxVelocity); //GetRandomBehaviour()
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), false, false, PURSUE, fMaxVelocity);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, -2.0f), false, false, PURSUE, fMaxVelocity); 
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), false, false, PURSUE, fMaxVelocity);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), false, false, PURSUE, fMaxVelocity);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, -2.0f), false, false, WANDER, fMaxVelocity);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, 2.0f), false, false, WANDER, fMaxVelocity);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), false, false, WANDER, fMaxVelocity);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(10.0f, 0.0f, 0.0f), false, false, WANDER, fMaxVelocity);
-		AddEntity(m_pEnemy);
-
-		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(10.0f, 0.0f, 0.0f), false, false, WANDER, fMaxVelocity);
-		AddEntity(m_pEnemy);
-	}
+	// 15 enemies
 
 
+	//////////////////////////////////////////////////////////////
 
-	// Dot - small quad for bullet
-	/*Entity Bullet;
-	Bullet.Initialise(BULLET, DOT, 6, m_Camera, vec3(1.0f, 0.0f, 1.0f), false, false);
-	AddEntity(Bullet);*/
 
 	//// Pyramid
 	//Model ModelPyramid;
@@ -427,6 +277,130 @@ void GameScene::CreateEntities()
 	//vec3 positionOctagon(0.0f, 0.0f, 0.0f);
 	//ModelOctagon.Initialise(OCTAGON, 18, m_Camera, positionOctagon);
 	//AddModel(ModelOctagon);
+}
+
+void GameScene::UpdateEntities()
+{
+	// Player back to starting position
+	m_pPlayer->GetModel()->ResetToStartingPosition();
+
+
+	// Reset AI positions and set to inactive.
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		(*it)->GetModel()->ResetToStartingPosition();
+		(*it)->SetActivity(false);
+	}
+
+	// Spawn enemies based on level
+	if (m_iCurrentLevel == 1)
+	{
+		for (int x{ 0 }; x < 5; x++) // Number of enemies
+		{
+			m_enemies.at(x)->SetAIBehaviour(FLEE);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
+
+	else if (m_iCurrentLevel == 2)
+	{
+		for (int x{ 0 }; x < 5; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(EVADE);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
+
+	else if (m_iCurrentLevel == 3)
+	{
+		for (int x{ 0 }; x < 6; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(WANDER);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
+
+	else if (m_iCurrentLevel == 4)
+	{
+		for (int x{ 0 }; x < 5; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(SEEK);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
+
+	else if (m_iCurrentLevel == 5)
+	{
+		for (int x{ 0 }; x < 6; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(LEADERFOLLOW);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
+
+	else if (m_iCurrentLevel == 6)
+	{
+		for (int x{ 0 }; x < 6; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(FLOCK);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
+
+	else if (m_iCurrentLevel == 7)
+	{
+		for (int x{ 0 }; x < 6; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(PURSUE);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
+
+	else // After level 7
+	{
+		float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 350.0f);
+		//	float fMaxVelocity = 0.0001f;  // To test positions
+		//	float fMaxVelocity = 0.05f;
+
+		for (int x{ 0 }; x < 3; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(SEEK);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+
+		for (int x{ 3 }; x < 7; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(PURSUE);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+
+		for (int x{ 7 }; x < 12; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(WANDER);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+
+		for (int x{ 12 }; x < 15; x++)
+		{
+			m_enemies.at(x)->SetAIBehaviour(FLOCK);
+			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+		}
+	}
 }
 
 void GameScene::CreateText()
@@ -466,6 +440,11 @@ void GameScene::CreateText()
 	m_pTextLabel->setPosition(glm::vec2(1430, 780));
 	m_pTextLabel->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(m_pTextLabel);
+
+	m_pTextLabel = new TextLabel(LIVES, "", "freeagent.ttf");
+	m_pTextLabel->setPosition(glm::vec2(1430, 820));
+	m_pTextLabel->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	AddText(m_pTextLabel);
 }
 
 CClock* GameScene::GetClock()
@@ -480,56 +459,66 @@ void GameScene::SetPositions(float _fDeltaTick)
 		(*it)->SetPositions(_fDeltaTick);
 	}
 
-	for (auto it = m_bullets.begin(); it != m_bullets.end(); it++)
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
-		(*it)->SetPositions(_fDeltaTick);
+		if ((*it)->IsActive())
+			(*it)->SetPositions(_fDeltaTick);
+	}
+
+	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++)
+	{
+		if ((*it)->IsActive())
+			(*it)->SetPositions(_fDeltaTick);
 	}
 }
 
 
 void GameScene::CheckCollisions()
 {	
-	// CUBE collisions - enemys and players
+	// Enemy and player collisions
 	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
 	{	
-		for (auto it2 = m_entities.begin(); it2 != m_entities.end(); it2++)
+		for (auto it2 = m_enemies.begin(); it2 != m_enemies.end(); it2++)
 		{
 			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&   // within a distance
-				(((*it)->GetModel()->GetPosition().x) != ((*it2)->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
-				(((*it)->GetModel()->GetPosition().z) != ((*it2)->GetModel()->GetPosition().z)) &&
-				((*it)->GetModel()->GetModelType() == CUBE) && // both objects CUBES - so it doesn't include the map and other entities
-				((*it2)->GetModel()->GetModelType() == CUBE))
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&  
+				((*it)->GetEntityType() == PLAYER) && (*it2)->IsActive())
 			{
-				if ((((*it)->GetEntityType() == PLAYER) && ((*it2)->GetEntityType() == ENEMY)) ||
-					(((*it)->GetEntityType() == ENEMY) && ((*it2)->GetEntityType() == PLAYER)))
-
-				{
-					// Player dies
-				}
-					
-				else if (((*it)->GetEntityType() == ENEMY) && ((*it2)->GetEntityType() == ENEMY))
-				{
-					(*it)->Flee((*it2)->GetModel()->GetPosition());
-				//	break;
-				}
-			
+				(*it)->SetToDead();
+				(*it)->ReducePlayerLives();
+				return;
 			}
-
 		}
 	}
 
-	// BULLET and ENEMY collisions
-	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	// Enemy and enemy collisions
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
-		for (auto it2 = m_bullets.begin(); it2 != m_bullets.end(); it2++)
+		for (auto it2 = m_enemies.begin(); it2 != m_enemies.end(); it2++)
 		{
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.5f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.5f) &&
-				((*it)->GetEntityType() == ENEMY))
+			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&
+				((*it)->IsActive()) && ((*it2)->IsActive()) &&
+				(((*it)->GetModel()->GetPosition().x) != ((*it2)->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
+				(((*it)->GetModel()->GetPosition().z) != ((*it2)->GetModel()->GetPosition().z)))
 			{
-				(*it)->GetModel()->SetToBeDeleted(); // delete enemy
-				(*it2)->GetModel()->SetToBeDeleted(); // delete bullet
+				(*it)->Flee((*it2)->GetModel()->GetPosition()); // Flee if enemies are too close together
+			}
+		}
+	}
+
+
+	// Player bullet and enemy collisions
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		for (auto it2 = m_playerBullets.begin(); it2 != m_playerBullets.end(); it2++)
+		{
+			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+				((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive()))
+			{
+				(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
+				(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
 
 				if ((*it)->GetModel()->IsLeader())
 				{
@@ -538,41 +527,18 @@ void GameScene::CheckCollisions()
 
 				(*it)->AddToScore(10);
 
-				break;
+				//break;
 			}
-
-			//if ((*it2)->GetCurrentVelocity() == vec3(0.0f, 0.0f, 0.0f))
-			//{
-			//	(*it2)->GetModel()->SetBulletToBeDeleted();                // to try to sop flashing bullet on the player spawn point - not working
-			//}
 		}
-
 	}
 }
 
-//void GameScene::CreateLevels()
-//{
-//	// Level 1
-//	m_pLevel = new Level;
-//	m_pLevel->Initialise(1, 3.0f, FLEE);
-//	AddLevel(m_pLevel);
-//
-//	// Level 2
-//	m_pLevel = new Level;
-//	m_pLevel->Initialise(5, 5.0f, SEEK);
-//	AddLevel(m_pLevel);
-//}
-
-//void GameScene::AddLevel(Level* _level)
-//{
-//	m_levels.push_back(_level);
-//}
-
 bool GameScene::IsLevelComplete()
 {
-	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	// Check if level complete - no active enemies
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
-		if ((*it)->GetEntityType() == ENEMY)
+		if ((*it)->IsActive())
 		{
 			m_bLevelComplete = false;
 			return m_bLevelComplete;
@@ -595,6 +561,8 @@ void GameScene::SetLevelComplete(bool _IsComplete)
 
 AIBehaviour GameScene::GetRandomBehaviour()
 {
+//  Not currently used
+
 //	srand(time(NULL));
 	int iBehaviour = rand() % 3;
 
@@ -625,6 +593,99 @@ AIBehaviour GameScene::GetRandomBehaviour()
 		break;
 	}
 }
+
+Entity* GameScene::GetPlayer()
+{
+	return m_pPlayer;
+}
+
+bool GameScene::GameOver()
+{
+	if (m_pPlayer->GetPlayerLives() < 0)
+		return true;
+
+	else
+		return false;
+}
+
+void GameScene::SetLevel(int _iLevel)
+{
+	m_iCurrentLevel = _iLevel;
+}
+
+void GameScene::Update()
+{
+	GetClock()->Process();
+	m_fDeltaTick = GetClock()->GetDeltaTick();
+		
+	if (GetPlayer()->IsPlayerDead())
+	{
+		SetPlayerAlive();  // Set player back to alive
+		SetAllBulletsInactive(); // To stop bullet rendering
+
+		if (GameOver())
+		{
+			SetLevel(1);  // go back to level one
+			GetPlayer()->ResetPlayerLives(); 
+			GetPlayer()->ResetScore();  
+		}
+
+		UpdateEntities(); // restart level		
+	}
+
+	else if (IsLevelComplete())
+	{
+		SetAllBulletsInactive(); // To stop bullet rendering
+		NextLevel();
+		UpdateEntities();   // start the next level
+		SetLevelComplete(false);
+	}
+
+	CheckEnemies();  // Check if any enemies need to be deactivated - if set "to delete"
+	CheckBullets();  // Check if any bullets need to be deactivated - if set "to delete"
+	CheckCollisions();
+	SetPositions(m_fDeltaTick);  // Set all entity positions	
+}
+
+void GameScene::SetUp()
+{
+	GLfloat width = 1600;
+	GLfloat height = 900;
+
+	Camera Camera(vec3(0.0f, 15.0f, 22.0f), vec3(0.0f, -0.9f, -1.0f), vec3(0.0f, 1.0f, 0.0f), width, height);
+	//            Pos:  x      y      z    Front:       y tilt          Up:       
+
+	AddCamera(Camera);
+	CreateEntities();
+	UpdateEntities();
+	CreateText();
+	GetClock()->Initialise();
+}
+
+void GameScene::SetAllBulletsInactive()
+{
+	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++)
+	{
+		(*it)->SetActivity(false);
+		//(*it)->ResetVelocityForBullets();		
+	}
+}
+
+void GameScene::SetPlayerAlive()
+{
+	m_pPlayer->SetToAlive();
+}
+
+//void GameScene::SetDeltaTick(float _fTick)
+//{
+//	m_fDeltaTick = _fTick;
+//}
+//
+//float GameScene::GetDeltaTick()
+//{
+//	return m_fDeltaTick;
+//}
+
 
 //void GameScene::ExecuteOneFrame()
 //{

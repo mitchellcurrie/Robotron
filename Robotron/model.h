@@ -28,27 +28,39 @@ public:
 	void Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader);
 	void Render(vec3 _CurrentVelocity);
 	void Rotate();
+
 	ModelType GetModelType();
 	vec3 GetPosition();
 	vec3 GetPlayerPosition();
 	vec3 GetLeaderPosition();
+	vec3 GetLastPlayerVelocity();
 	vec3 CheckEdgeCollision();
+
 	bool IsAtEdge();
 	bool IsLeader();
-	bool IsWithinFlockingDistance();
+	bool IsWithinFlockingDistance(float _fDistance);
+	bool IsWithinPlayerRange(float _fDistance);
 	bool ToDelete();
+
 	void SetToBeDeleted();
-	void SetLastPlayerVelocity(vec3 _velocity);
-	vec3 GetLastPlayerVelocity();
+	void SetLastPlayerVelocity(vec3 _velocity);	
 	void SetLeader();
+	void SetPosition(vec3 _position);
+
+	void ResetToBeDeleted();
+	void ResetToStartingPosition();
+	
 
 private:
 
 	GLuint program;
 	GLuint vao, vbo, ebo;
 	GLuint texture, texture2;
-	vec3 m_position;
 	GLsizei m_numVertices;
+
+	vec3 m_position;
+	vec3 m_startingPosition;
+	
 	Camera m_Camera;
 	ModelType m_ModelType;
 
@@ -58,7 +70,5 @@ private:
 
 	bool m_IsPlayer;
 	bool m_IsLeader;
-	bool m_bToBeDeleted;
-
-	
+	bool m_bToBeDeleted;	
 };

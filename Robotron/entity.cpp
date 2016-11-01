@@ -28,16 +28,20 @@
 
 unsigned char keyState[255];
 
-vec3 Entity::m_CurrentPlayerVelocity = vec3(0.0f, 0.0f, 0.0f);
-vec3 Entity::m_CurrentLeaderVelocity = vec3(0.0f, 0.0f, 0.0f);
-bool Entity::m_bBulletFired = false;
+// Static variables
 std::clock_t Entity::m_start = std::clock();
 double Entity::m_duration = 0.0f;
-std::string Entity::m_AIName = "";
-vec2 Entity::m_textPosition = vec2(0.0f, 0.0f);
-bool Entity::m_bLeaderDead = false;
+
+vec3 Entity::m_CurrentPlayerVelocity = vec3(0.0f, 0.0f, 0.0f);
+vec3 Entity::m_CurrentLeaderVelocity = vec3(0.0f, 0.0f, 0.0f);
 vec3 Entity::m_LastBulletVelocity = vec3(0.0f, 0.0f, -0.94167f); // -0.94 - In case the player shoots before using the shooting direction controls, shoots forward
+
+bool Entity::m_bBulletFired = false;
+bool Entity::m_bLeaderDead = false;
+
 int Entity::m_iScore = 0;
+int Entity::m_iPlayerLives = 3;
+int Entity::m_iBulletCounter = 0;
 
 
 Entity::Entity()
@@ -47,7 +51,13 @@ Entity::Entity()
 	// To update:
 	m_fMaxForce = 0.05f;
 	m_fMaxVelocity = 0.00f;
-	SetBulletDirection = false;
+	m_bSetBulletDirection = false;
+	m_bIsLeader = false;
+	m_bIsPlayer = false;
+	m_bIsDead = false;
+	m_bActive = false;
+	std::string m_AIName = "";
+	vec2 m_textPosition = vec2(0.0f, 0.0f);
 	srand(time(NULL));
 }
 
@@ -56,11 +66,11 @@ Entity::~Entity()
 
 }
 
-void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader, AIBehaviour _behaviour, float _maxVelocity)
+void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity)
 {
 	m_pModel = new Model;
-	m_pModel->Initialise(_model, _numVertices, _camera, _position, _IsPlayer, _IsLeader);
 	m_EntityType = _entity;
+	m_pModel->Initialise(_model, _numVertices, _camera, _position, IsPlayer(), IsLeader());	
 	m_Behaviour = _behaviour;
 	m_fMaxVelocity = _maxVelocity;
 
@@ -241,9 +251,14 @@ void Entity::SetPositions(float _fDeltaTick)
 			m_CurrentLeaderVelocity = m_CurrentVelocity;
 	}
 
-	else if (m_EntityType == BULLET)
+	else if ((m_EntityType == BULLET) && (m_bActive))
 	{
 		////////////  BULLET Direction ////////////////
+
+		//if (m_pModel->IsAtEdge())
+		//{
+		//	m_pModel->SetToBeDeleted(); // m_bToBeDeleted = true;
+		//}
 
 		float fSpeed = 45;
 
@@ -319,11 +334,11 @@ void Entity::SetPositions(float _fDeltaTick)
 			m_LastBulletVelocity = m_CurrentBulletVelocity;
 		}
 
-		if (!SetBulletDirection)
+		if (!m_bSetBulletDirection)
 		{
 			// m_CurrentVelocity = m_pModel->GetLastPlayerVelocity() * 7.0f;
 			m_CurrentVelocity = m_LastBulletVelocity;
-			SetBulletDirection = true;
+			m_bSetBulletDirection = true;
 		}
 			
 	}
@@ -337,7 +352,6 @@ bool Entity::IsPlayer()
 	else
 		return false;
 }
-
 
 void Entity::entityKeyboard(unsigned char key, int x, int y)
 {
@@ -420,7 +434,12 @@ void Entity::Pursue()
 
 	vec3 FuturePosition = m_pModel->GetPlayerPosition() + (m_CurrentPlayerVelocity * T);
 
-	Seek(FuturePosition);
+	if (m_pModel->IsWithinPlayerRange(3.0f))
+		Seek(m_pModel->GetPlayerPosition());
+
+	else
+		Seek(FuturePosition);
+
 }
 
 void Entity::Evade()
@@ -431,6 +450,23 @@ void Entity::Evade()
 	//float T = 50.0f;
 
 	vec3 FuturePosition = m_pModel->GetPlayerPosition() + m_CurrentPlayerVelocity * T;
+
+	if (m_pModel->IsWithinPlayerRange(6.0f))
+		Flee(m_pModel->GetPlayerPosition());
+
+	else
+		Flee(FuturePosition);
+
+}
+
+void Entity::EvadeLeader()
+{
+	vec3 Distance = m_pModel->GetLeaderPosition() - m_pModel->GetPosition();
+
+	float T = Distance.length() / m_fMaxVelocity;
+	//float T = 50.0f;
+
+	vec3 FuturePosition = m_pModel->GetLeaderPosition() + m_CurrentLeaderVelocity * T;
 
 	Flee(FuturePosition);
 }
@@ -459,8 +495,11 @@ void Entity::LeaderFollowing()
 {
 	if (m_bLeaderDead)
 	{
-		m_pModel->SetLeader(); // create new leader
-		m_bLeaderDead = false;
+		if (m_bActive)
+		{
+			m_pModel->SetLeader(); // create new leader
+			m_bLeaderDead = false;
+		}		
 	}
 	
 	if (m_pModel->IsLeader())
@@ -470,10 +509,18 @@ void Entity::LeaderFollowing()
 
 	else
 	{
-		float Distance = 75.0f;
-		vec3 BackPosition = m_pModel->GetLeaderPosition() - m_CurrentLeaderVelocity * Distance; // other enemies follow the leader
-		
-		Seek(BackPosition);
+		if (m_pModel->IsWithinFlockingDistance(4.0f))
+		{
+			EvadeLeader();
+		}
+
+		else
+		{
+			float Distance = 75.0f;
+			vec3 BackPosition = m_pModel->GetLeaderPosition() - m_CurrentLeaderVelocity * Distance; // other enemies follow the leader
+
+			Seek(BackPosition);
+		}		
 	}
 }
 
@@ -481,21 +528,30 @@ void Entity::Flocking()
 {
 	if (m_bLeaderDead)
 	{
-		m_pModel->SetLeader();
-		m_bLeaderDead = false;
+		if (m_bActive)
+		{
+			m_pModel->SetLeader(); // create new leader
+			m_bLeaderDead = false;
+		}
 	}
 
 	if (m_pModel->IsLeader())
 	{
-		//Wander();
-		Seek(m_pModel->GetPlayerPosition());
+		Wander();
+		//Seek(m_pModel->GetPlayerPosition());
 	}
 
 	else
 	{
-		if (m_pModel->IsWithinFlockingDistance())
+		if (m_pModel->IsWithinFlockingDistance(2.0f))
+		{
+			EvadeLeader();
+		}
+		
+		else if (m_pModel->IsWithinFlockingDistance(2.5f))
 		{
 			m_CurrentVelocity = m_CurrentLeaderVelocity;
+			//EvadeLeader();
 		}
 
 		else 
@@ -570,12 +626,127 @@ std::string Entity::GetScore()
 	return std::to_string(m_iScore);
 }
 
+std::string Entity::GetLives()
+{
+	if (m_iPlayerLives < 0)
+		return ("0");
+	
+	else
+		return std::to_string(m_iPlayerLives);
+}
+
 void Entity::SetAIBehaviour(AIBehaviour _behaviour)
 {
 	m_Behaviour = _behaviour;
+	m_AIName = _behaviour;
 }
 
 AIBehaviour Entity::GetAIBehaviour()
 {
 	return m_Behaviour;
 }
+
+void Entity::SetAsLeader()
+{
+	m_bIsLeader = true;
+}
+
+void Entity::SetAsPlayer()
+{
+	m_bIsPlayer = true;
+}
+
+bool Entity::IsLeader()
+{
+	if (m_bIsLeader)
+		return true;
+
+	else
+		return false;	
+}
+
+void Entity::SetToDead()
+{
+	m_bIsDead = true;
+}
+
+bool Entity::IsPlayerDead()
+{
+	return m_bIsDead;
+}
+
+int Entity::GetPlayerLives()
+{
+	return m_iPlayerLives;
+}
+
+void Entity::ReducePlayerLives()
+{
+	m_iPlayerLives--;
+}
+
+void Entity::ResetPlayerLives()
+{
+	m_iPlayerLives = 3;
+}
+
+void Entity::ResetScore()
+{
+	m_iScore = 0;
+}
+
+bool Entity::IsActive()
+{
+	return m_bActive;
+}
+
+void Entity::SetActivity(bool _activity)
+{
+	m_bActive = _activity;
+
+	if (!_activity)
+		m_bSetBulletDirection = false;
+}
+
+void Entity::SetModelPosition(vec3 _position)
+{
+	m_pModel->SetPosition(_position);
+}
+
+void Entity::SetBulletFired(bool _b)
+{
+	m_bBulletFired = _b;
+}
+
+int Entity::GetBulletCounter()
+{
+	return m_iBulletCounter;
+}
+
+void Entity::IncrementBulletCounter()
+{
+	if (m_iBulletCounter == 9)
+		m_iBulletCounter = 0;
+
+	else
+		m_iBulletCounter++;
+}
+
+void Entity::ResetVelocityForBullets()
+{
+	m_CurrentBulletVelocity = vec3(0.0f, 0.0f, 0.0f);
+	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
+}
+
+void Entity::SetMaxVelocity(float _fMaxVelocity)
+{
+	m_fMaxVelocity = _fMaxVelocity;
+}
+
+void Entity::SetToAlive()
+{
+	m_bIsDead = false;
+}
+
+
+

@@ -57,7 +57,8 @@ enum TextType
 	STATIC,
 	AIDESCRIPTION,
 	SCORE,
-	LEVEL
+	LEVEL,
+	LIVES
 };
 
 enum AIBehaviour

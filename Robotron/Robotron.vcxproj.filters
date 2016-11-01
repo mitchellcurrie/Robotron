@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="ShaderLoader.cpp">
+      <Filter>Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>Other</Filter>
+    </ClCompile>
+    <ClCompile Include="clock.cpp">
+      <Filter>Other</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>Other</Filter>
+    </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Main stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Main stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="gameScene.cpp">
+      <Filter>Main stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="entity.cpp">
+      <Filter>Main stuff</Filter>
+    </ClCompile>
+    <ClCompile Include="TextLabel.cpp">
+      <Filter>Other</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ShaderLoader.h">
+      <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Other</Filter>
+    </ClInclude>
+    <ClInclude Include="clock.h">
+      <Filter>Other</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Other</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Main stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="gameScene.h">
+      <Filter>Main stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="entity.h">
+      <Filter>Main stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="TextLabel.h">
+      <Filter>Other</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Text.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Text.fs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shape.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shape.fs">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{aa1b4a31-49c4-4d41-9b66-375cf9a8d686}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Other">
+      <UniqueIdentifier>{c6814831-1c0b-4d4c-bd59-4b18d8c9f0ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main stuff">
+      <UniqueIdentifier>{5620aff6-5737-4385-8b17-48b49c0968c8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

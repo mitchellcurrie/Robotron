@@ -22,56 +22,95 @@ public:
 
 	Entity();
 	~Entity();
-	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader, AIBehaviour _behaviour, float _maxVelocity);
+	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity);
 	virtual void Render();
-	bool IsPlayer();
+	virtual void SetPositions(float _fDeltaTick);
+	
 	static void entityKeyboard(unsigned char key, int x, int y);
 	static void entityKeyboard_up(unsigned char key, int x, int y);
-	vec3 LimitForce(vec3 _steering);
-	vec3 LimitVelocity(vec3 _velocity);
+
+	// AI functions
 	void Seek(vec3 _playerPosition);
 	void Flee(vec3 _playerPosition);
 	void Pursue();
 	void Evade();
+	void EvadeLeader();
 	void Wander();
 	void LeaderFollowing();
 	void Flocking();
-	Model* GetModel();
-	virtual void SetPositions(float _fDeltaTick);
-	void ReverseCurrentVelocity();
-	void ResetCurrentVelocity();
-	vec3 GetPlayerVelocity();
-	vec3 GetCurrentVelocity();
-	EntityType GetEntityType();
-	static bool IsBulletFired();
-	bool ToDelete();
-	std::string GetAIName();
-	vec2 GetTextPosition();
-	void SetLeaderDead();
-	void AddToScore(int _Score);
-	std::string GetScore();
 	void SetAIBehaviour(AIBehaviour _behaviour);
 	AIBehaviour GetAIBehaviour();
 	
+	// Forces and velocity
+	vec3 LimitForce(vec3 _steering);
+	vec3 LimitVelocity(vec3 _velocity);
+	vec3 GetPlayerVelocity();
+	vec3 GetCurrentVelocity();
+	void ReverseCurrentVelocity();
+	void ResetCurrentVelocity();
+	void SetMaxVelocity(float _fMaxVelocity);
+	void ResetVelocityForBullets();
+
+	static bool IsBulletFired();
+	bool ToDelete();
+	bool IsPlayer();
+	bool IsActive();
+	bool IsLeader();
+	bool IsPlayerDead();
+
+	std::string GetAIName();
+	vec2 GetTextPosition();
+	std::string GetScore();
+	std::string GetLives();
+	Model* GetModel();
+	EntityType GetEntityType();
+	int GetPlayerLives();
+	int GetBulletCounter();
+	
+	void SetAsLeader();
+	void SetAsPlayer();	
+	void SetToDead();
+	void SetLeaderDead();
+	void SetActivity(bool _activity);
+	void SetModelPosition(vec3 _position);
+	void SetBulletFired(bool _b);
+	void SetToAlive();
+	
+	void AddToScore(int _Score);	
+	void ReducePlayerLives();
+	void ResetPlayerLives();
+	void ResetScore();	
+	void IncrementBulletCounter();
+	
 private:
 
-	Model* m_pModel;
-	vec3 m_CurrentVelocity;
-	vec3 m_CurrentBulletVelocity;
-	static vec3 m_CurrentPlayerVelocity;
-	static vec3 m_CurrentLeaderVelocity;
-	float m_fMaxForce;
-	float m_fMaxVelocity;
-	EntityType m_EntityType;
-	static bool m_bBulletFired;
-	bool SetBulletDirection;
 	static std::clock_t m_start;
 	static double m_duration;
-	static std::string m_AIName;
-	static int m_iScore;
-	static vec2 m_textPosition;
-	static bool m_bLeaderDead;
+	static vec3 m_CurrentPlayerVelocity;
+	static vec3 m_CurrentLeaderVelocity;
 	static vec3 m_LastBulletVelocity;
+	static int m_iPlayerLives;
+	static int m_iBulletCounter;
+	static int m_iScore;
+	static bool m_bLeaderDead;
+	static bool m_bBulletFired;
+	
+	Model* m_pModel;
+
+	vec3 m_CurrentVelocity;
+	vec3 m_CurrentBulletVelocity;
+	EntityType m_EntityType;
+	std::string m_AIName;
 	AIBehaviour m_Behaviour;
+	vec2 m_textPosition;
+	
+	float m_fMaxForce;
+	float m_fMaxVelocity;
+					
+	bool m_bSetBulletDirection;
+	bool m_bIsLeader;
+	bool m_bIsPlayer;
+	bool m_bIsDead;
+	bool m_bActive;	
 };
 

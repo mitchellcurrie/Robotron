@@ -19,6 +19,7 @@
 #include "model.h"
 #include "ShaderLoader.h"
 
+// Static variables
 vec3 Model::m_PlayerPosition = vec3(0.0f, 0.0f, 0.0f);
 vec3 Model::m_LeaderPosition = vec3(0.0f, 0.0f, 0.0f);
 vec3 Model::m_LastPlayerVelocity = vec3(0.0f, 0.0f, 0.0f);
@@ -75,6 +76,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 //	m_pCamera = &_camera;
 	m_Camera = _camera;
 	m_position = _position;
+	m_startingPosition = _position;
 	m_numVertices = _numVertices;
 	m_ModelType = _model;
 //	glewInit();
@@ -485,10 +487,20 @@ bool Model::IsAtEdge()
 	return false;
 }
 
-bool Model::IsWithinFlockingDistance()
+bool Model::IsWithinFlockingDistance(float _fDistance)
 {
-	if ((abs((m_position.x) - (m_LeaderPosition.x)) < 2.5f) &&   // within a distance
-		(abs((m_position.z) - (m_LeaderPosition.z)) < 2.5f))
+	if ((abs((m_position.x) - (m_LeaderPosition.x)) < _fDistance) &&   // within a distance
+		(abs((m_position.z) - (m_LeaderPosition.z)) < _fDistance))
+		return true;
+
+	else
+		return false;
+}
+
+bool Model::IsWithinPlayerRange(float _fDistance)
+{
+	if ((abs((m_position.x) - (m_PlayerPosition.x)) < _fDistance) &&   // within a distance
+		(abs((m_position.z) - (m_PlayerPosition.z)) < _fDistance))
 		return true;
 
 	else
@@ -518,6 +530,21 @@ void Model::SetLastPlayerVelocity(vec3 _velocity)
 void Model::SetLeader()
 {
 	m_IsLeader = true;
+}
+
+void Model::SetPosition(vec3 _position)
+{
+	m_position = _position;
+}
+
+void Model::ResetToBeDeleted()
+{
+	m_bToBeDeleted = false;
+}
+
+void Model::ResetToStartingPosition()
+{
+	m_position = m_startingPosition;
 }
 
 

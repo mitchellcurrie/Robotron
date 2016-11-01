@@ -27,29 +27,45 @@ public:
 	GameScene();
 	~GameScene();
 	static GameScene& GetInstance();
+
 	void AddCamera(Camera _camera);
 	void AddEntity(Entity* _entity);
-	void AddBullet(Entity* _entity);
+	void AddEnemy(Entity* _enemy);
+	void AddPlayerBullet(Entity* _entity);
 	void AddText(TextLabel* _text);
+
 	void RenderEntities(); // For entities
 	void RenderText(); // For text
-	void CreateEntities();
+	
 	void CreateText();
-	void SetPositions(float _fDeltaTick);
+	void CreateEntities();
+	void UpdateEntities();
 	void CheckCollisions();
-//	void ExecuteOneFrame();
-	CClock* GetClock();
 	void CheckBullets();
-	void CheckEntities();
-	void DeleteEntity(Entity* _entity);
-	void DeleteEntity(Entity _entity);
-	void CreateLevels();
-//	void AddLevel(Level* _level);
+	void CheckEnemies();
+	void SetAllBulletsInactive();
+	void SetPositions(float _fDeltaTick);
+	void SetPlayerAlive();
+
+	CClock* GetClock();
+	AIBehaviour GetRandomBehaviour();
+	Entity* GetPlayer();
+
+	// Levels
 	bool IsLevelComplete();
 	void NextLevel();
 	void SetLevelComplete(bool _IsComplete);
-	AIBehaviour GetRandomBehaviour();
+	void SetLevel(int _iLevel);
 
+	// Gameplay
+	bool GameOver();
+	void Update();
+	void SetUp();
+	
+	/*void SetDeltaTick(float _fTick);
+	float GetDeltaTick();*/
+	//	void ExecuteOneFrame();
+	
 protected:
 	CClock* m_pClock;
 
@@ -57,20 +73,23 @@ private:
 
 	static GameScene* s_pGameScene;
 	Camera m_Camera;
+
+	// Vectors
 	std::vector<Entity*> m_entities;
-	//vec3 m_PlayerPosition;
+	std::vector<Entity*> m_enemies;
 	std::vector<TextLabel*> m_textLabels;
-	std::vector<Entity*> m_bullets;
-	std::vector<Entity*> m_bulletsToDelete;	
+	std::vector<Entity*> m_playerBullets;
+
+	// Pointers
 	Entity* m_pBullet;
 	Entity* m_pPlayer;
 	Entity* m_pEnemy;
 	Entity* m_pMap;
-//	Level* m_pLevel;
 	TextLabel* m_pTextLabel;
-//	std::vector<Level*> m_levels;
+
 	int m_iCurrentLevel;
 	bool m_bLevelComplete;
+	float m_fDeltaTick;
 
 
 };

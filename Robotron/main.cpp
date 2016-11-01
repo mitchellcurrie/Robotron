@@ -13,13 +13,11 @@
 //		  Mitchell.Currie@mediadesignschool.com
 //        
 
-
 /*
-
 	To do:
 
 	Add power ups
-
+	enemy firing
 */
 
 
@@ -41,31 +39,12 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-float g_fDeltaTick;
-
 void render()
 {
-	//srand(time(NULL));
-
-	if (GameScene::GetInstance().IsLevelComplete())
-	{
-		GameScene::GetInstance().NextLevel();
-		GameScene::GetInstance().CreateEntities();   // Create entities of the new level
-		GameScene::GetInstance().SetLevelComplete(false);
-	}
-		
+	GameScene::GetInstance().Update();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//	GameScene::GetInstance().ExecuteOneFrame();
-	GameScene::GetInstance().GetClock()->Process();
-	g_fDeltaTick = GameScene::GetInstance().GetClock()->GetDeltaTick();
-
-	GameScene::GetInstance().SetPositions(g_fDeltaTick);
-	GameScene::GetInstance().CheckCollisions();
-	GameScene::GetInstance().CheckBullets();
-	GameScene::GetInstance().CheckEntities();
 	
 	GameScene::GetInstance().RenderEntities(); // for entities
 	GameScene::GetInstance().RenderText(); // for text
@@ -85,9 +64,6 @@ void keyboard_up(unsigned char key, int x, int y)
 
 int main(int argc, char **argv)
 {
-	GLfloat width = 1600;
-	GLfloat height = 900;
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(250, 50);
@@ -96,13 +72,7 @@ int main(int argc, char **argv)
 
 	glewInit();
 
-	Camera Camera(vec3(0.0f, 15.0f, 22.0f), vec3(0.0f, -0.9f, -1.0f), vec3(0.0f, 1.0f, 0.0f), width, height);
-	//            Pos:  x      y      z    Front:       y tilt          Up:       
-
-	GameScene::GetInstance().AddCamera(Camera);
-	GameScene::GetInstance().CreateEntities();
-	GameScene::GetInstance().CreateText();
-	GameScene::GetInstance().GetClock()->Initialise();
+	GameScene::GetInstance().SetUp();
 
 	// glutIdleFunc(update);
 
@@ -114,7 +84,6 @@ int main(int argc, char **argv)
 
 	glutKeyboardFunc(keyboard);
 	glutKeyboardUpFunc(keyboard_up);
-
 	
 	glutMainLoop();
 
