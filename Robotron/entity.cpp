@@ -39,10 +39,9 @@ vec3 Entity::m_LastBulletVelocity = vec3(0.0f, 0.0f, -0.94167f); // -0.94 - In c
 bool Entity::m_bBulletFired = false;
 bool Entity::m_bLeaderDead = false;
 
-int Entity::m_iScore = 0;
-int Entity::m_iPlayerLives = 3;
 int Entity::m_iPlayerBulletCounter = 0;
 int Entity::m_iEnemyBulletCounter = 0;
+int Entity::m_iEnemyCounter = 0;
 
 
 Entity::Entity()
@@ -52,14 +51,23 @@ Entity::Entity()
 	// To update:
 	m_fMaxForce = 0.05f;
 	m_fMaxVelocity = 0.00f;
+	m_fStartingMaxVelocity = 0.00f;
 	m_bSetBulletDirection = false;
 	m_bIsLeader = false;
 	m_bIsPlayer = false;
 	m_bIsDead = false;
 	m_bActive = false;
 	m_bIsEnemyBullet = false;
+	m_bIsSpedUp = false;
+	m_bFastFire = false;
+	m_iPlayerLives = 3;
+	m_iScore = 0;
+	m_iScoreCounter = 0;
+	m_fFireRate = 0.12f;
 	std::string m_AIName = "";
 	vec2 m_textPosition = vec2(0.0f, 0.0f);
+	m_PowerUp = NONPOWERUP;
+	m_Behaviour = WANDER;
 	srand(time(NULL));
 }
 
@@ -72,9 +80,14 @@ void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertic
 {
 	m_pModel = new Model;
 	m_EntityType = _entity;
+
+	if (m_bIsEnemyBullet)
+		m_pModel->SetAsEnemyBullet();
+
 	m_pModel->Initialise(_model, _numVertices, _camera, _position, IsPlayer(), IsLeader());	
 	m_Behaviour = _behaviour;
 	m_fMaxVelocity = _maxVelocity;
+	m_fStartingMaxVelocity = _maxVelocity;
 
 	if (m_EntityType == PLAYER)
 		m_start = std::clock();
@@ -94,7 +107,8 @@ void Entity::SetPositions(float _fDeltaTick)
 
 		////////////  PLAYER Direction ////////////////
 
-		float fSpeed = 8;
+		// float fSpeed = 8;
+		float fSpeed = m_fMaxVelocity;
 
 		// Forward left Movement
 		if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) && (keyState[(unsigned char)'w'] == BUTTON_DOWN))
@@ -171,7 +185,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		{
 			m_duration = (std::clock() - m_start) / (double)CLOCKS_PER_SEC;
 			
-			if (m_duration > 0.17f)
+			if (m_duration > m_fFireRate)
 			{
 				printf("Fire \n");
 				m_bBulletFired = true;
@@ -393,6 +407,11 @@ void Entity::SetPositions(float _fDeltaTick)
 			m_bSetBulletDirection = true;
 		}			
 	}
+
+	else if ((m_EntityType == POWERUP) && (m_bActive))
+	{
+		Wander();
+	}
 }
 
 bool Entity::IsPlayer()
@@ -446,9 +465,9 @@ vec3 Entity::LimitVelocity(vec3 _velocity)
 	return Velocity;
 }
 
-void Entity::Seek(vec3 _playerPosition)
+void Entity::Seek(vec3 _position)
 {
-	vec3 DesiredVelocity = _playerPosition - m_pModel->GetPosition();
+	vec3 DesiredVelocity = _position - m_pModel->GetPosition();
 	DesiredVelocity = glm::normalize(DesiredVelocity);
 
 	DesiredVelocity *= m_fMaxVelocity;
@@ -460,9 +479,9 @@ void Entity::Seek(vec3 _playerPosition)
 	m_CurrentVelocity = LimitVelocity(m_CurrentVelocity);
 }
 
-void Entity::Flee(vec3 _playerPosition)
+void Entity::Flee(vec3 _position)
 {
-	vec3 DesiredVelocity = m_pModel->GetPosition() - _playerPosition;
+	vec3 DesiredVelocity = m_pModel->GetPosition() - _position;
 	DesiredVelocity = glm::normalize(DesiredVelocity);
 
 	DesiredVelocity *= m_fMaxVelocity;
@@ -526,6 +545,13 @@ void Entity::Wander()
 {
 	float Distance = 1500.0f;
 	float Radius = 7.0f;
+
+	if (m_EntityType == POWERUP)
+	{
+		float Distance = 3000.0f;
+		float Radius = 0.05f;
+	}
+		
 	vec3 TargetPosition = vec3(0.0f, 0.0f, 0.0f);
 
 	vec3 FuturePosition = m_pModel->GetPosition() + m_CurrentVelocity * Distance;
@@ -670,6 +696,7 @@ void Entity::SetLeaderDead()
 void Entity::AddToScore(int _Score)
 {
 	m_iScore += _Score;
+	m_iScoreCounter += _Score;
 }
 
 std::string Entity::GetScore()
@@ -745,6 +772,17 @@ void Entity::ResetPlayerLives()
 void Entity::ResetScore()
 {
 	m_iScore = 0;
+	m_iScoreCounter = 0;
+}
+
+void Entity::ResetScoreCounter()
+{
+	m_iScoreCounter = 0;
+}
+
+int Entity::GetScoreCounter()
+{
+	return m_iScoreCounter;
 }
 
 bool Entity::IsActive()
@@ -780,6 +818,12 @@ int Entity::GetEnemyBulletCounter()
 	return m_iEnemyBulletCounter;
 }
 
+int Entity::GetEnemyCounter()
+{
+	return m_iEnemyCounter;
+}
+
+
 void Entity::IncrementPlayerBulletCounter()
 {
 	if (m_iPlayerBulletCounter == 9)
@@ -798,13 +842,22 @@ void Entity::IncrementEnemyBulletCounter()
 		m_iEnemyBulletCounter++;
 }
 
+void Entity::IncrementEnemyCounter()
+{
+	if (m_iEnemyCounter == 34)
+		m_iEnemyCounter = 0;
+
+	else
+		m_iEnemyCounter++;
+}
+
 void Entity::ResetVelocityForPlayerBullets()
 {
 	m_CurrentBulletVelocity = vec3(0.0f, 0.0f, 0.0f);
 	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 }
 
-void Entity::ResetVelocity()
+void Entity::VelocityToZero()
 {
 	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 }
@@ -822,6 +875,70 @@ void Entity::SetToAlive()
 void Entity::SetAsEnemyBullet()
 {
 	m_bIsEnemyBullet = true;
+}
+
+void Entity::ResetEnemyCounter()
+{
+	m_iEnemyCounter = 0;
+}
+
+void Entity::SetModelOutsideMap(bool _b)
+{
+	m_pModel->SetOutsideMap(_b);
+}
+
+void Entity::SetPowerUpType(PowerUpType _type)
+{
+	m_PowerUp = _type;
+}
+
+void Entity::ResetMaxVelocity()
+{
+	m_fMaxVelocity = m_fStartingMaxVelocity;
+}
+
+void Entity::SpeedUp()
+{
+	m_fMaxVelocity = 12.0f;
+}
+
+PowerUpType Entity::GetPowerUpType()
+{
+	return m_PowerUp;
+}
+
+void Entity::SetSpedUp(bool _b)
+{
+	m_bIsSpedUp = _b;
+}
+
+bool Entity::IsSpedUp()
+{
+	return m_bIsSpedUp;
+}
+
+void Entity::FastFire()
+{
+	m_fFireRate = 0.05f;
+}
+void Entity::SetFastFire(bool _b)
+{
+	m_bFastFire = _b;
+}
+
+bool Entity::IsFiringFast()
+{
+	return m_bFastFire;
+}
+
+void Entity::ResetFireRate()
+{
+	m_fFireRate = 0.12f;
+}
+
+void Entity::AddExtraLife()
+{
+	m_iPlayerLives++;
 }
 
 //bool Entity::IsEnemyFiring()

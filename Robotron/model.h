@@ -36,19 +36,23 @@ public:
 	vec3 GetLastPlayerVelocity();
 	vec3 CheckEdgeCollision();
 
+	bool HasEnteredMap();
 	bool IsAtEdge();
 	bool IsLeader();
 	bool IsWithinFlockingDistance(float _fDistance);
 	bool IsWithinPlayerRange(float _fDistance);
 	bool ToDelete();
+	bool IsOutsideMap();
 
 	void SetToBeDeleted();
 	void SetLastPlayerVelocity(vec3 _velocity);	
 	void SetLeader(bool _b);
 	void SetPosition(vec3 _position);
+	void SetAsEnemyBullet();
 
 	void ResetToBeDeleted();
 	void ResetToStartingPosition();
+	void SetOutsideMap(bool _b);
 	
 
 private:
@@ -70,5 +74,7 @@ private:
 
 	bool m_IsPlayer;
 	bool m_IsLeader;
-	bool m_bToBeDeleted;	
+	bool m_bToBeDeleted;
+	bool m_bOutsideMap;
+	bool m_bIsEnemyBullet;
 };

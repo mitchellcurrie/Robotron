@@ -30,8 +30,11 @@ public:
 	static void entityKeyboard_up(unsigned char key, int x, int y);
 	static void IncrementPlayerBulletCounter();
 	static void IncrementEnemyBulletCounter();
+	static void IncrementEnemyCounter();
 	static int GetPlayerBulletCounter();
 	static int GetEnemyBulletCounter();
+	static int GetEnemyCounter();
+	static void ResetEnemyCounter();
 
 	// AI functions
 	void Seek(vec3 _playerPosition);
@@ -54,7 +57,13 @@ public:
 	void ResetCurrentVelocity();
 	void SetMaxVelocity(float _fMaxVelocity);
 	void ResetVelocityForPlayerBullets();
-	void ResetVelocity();
+	void VelocityToZero();
+	void ResetMaxVelocity();
+	void SpeedUp();
+	void SetSpedUp(bool _b);
+	void FastFire();
+	void SetFastFire(bool _b);
+	void ResetFireRate();
 
 	static bool IsBulletFired();
 	bool ToDelete();
@@ -62,6 +71,8 @@ public:
 	bool IsActive();
 	bool IsLeader();
 	bool IsPlayerDead();
+	bool IsSpedUp();
+	bool IsFiringFast();
 	//bool IsEnemyFiring();
 
 	std::string GetAIName();
@@ -71,6 +82,7 @@ public:
 	Model* GetModel();
 	EntityType GetEntityType();
 	int GetPlayerLives();
+	PowerUpType GetPowerUpType();
 	
 	void SetLeader(bool _b);
 	void SetAsPlayer();	
@@ -81,12 +93,16 @@ public:
 	void SetBulletFired(bool _b);
 	void SetToAlive();
 	void SetAsEnemyBullet();
+	void SetModelOutsideMap(bool _b);
+	void SetPowerUpType(PowerUpType _type);
 	
 	void AddToScore(int _Score);	
 	void ReducePlayerLives();
 	void ResetPlayerLives();
-	void ResetScore();	
-	
+	void ResetScore();		
+	void AddExtraLife();
+	void ResetScoreCounter();
+	int GetScoreCounter();
 	
 private:
 
@@ -95,10 +111,9 @@ private:
 	static vec3 m_CurrentPlayerVelocity;
 	static vec3 m_CurrentLeaderVelocity;
 	static vec3 m_LastBulletVelocity;
-	static int m_iPlayerLives;
 	static int m_iPlayerBulletCounter;
 	static int m_iEnemyBulletCounter;
-	static int m_iScore;
+	static int m_iEnemyCounter;
 	static bool m_bLeaderDead;
 	static bool m_bBulletFired;
 	
@@ -110,9 +125,15 @@ private:
 	std::string m_AIName;
 	AIBehaviour m_Behaviour;
 	vec2 m_textPosition;
+	PowerUpType m_PowerUp;
 	
 	float m_fMaxForce;
 	float m_fMaxVelocity;
+	float m_fStartingMaxVelocity;
+	float m_fFireRate;
+	int m_iScore;
+	int m_iScoreCounter;
+	int m_iPlayerLives;
 					
 	bool m_bSetBulletDirection;
 	bool m_bIsLeader;
@@ -120,6 +141,8 @@ private:
 	bool m_bIsDead;
 	bool m_bActive;	
 	bool m_bIsEnemyBullet;
+	bool m_bIsSpedUp;
+	bool m_bFastFire;
 //	bool m_bEnemyToFire;
 };
 

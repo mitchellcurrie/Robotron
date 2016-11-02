@@ -14,12 +14,12 @@
 //        
 
 /*
+
 	To do:
 
-	Add power ups
-	enemy firing
-*/
+	Add 1 more power up - extra life?
 
+*/
 
 #include <iostream>
 #include <vector>
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(250, 50);
+	glutInitWindowPosition(170, 35);
 	glutInitWindowSize(1600, 900);
 	glutCreateWindow("Robotron");
 

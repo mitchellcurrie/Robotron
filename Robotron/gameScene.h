@@ -33,6 +33,7 @@ public:
 	void AddEnemy(Entity* _enemy);
 	void AddPlayerBullet(Entity* _entity);
 	void AddEnemyBullet(Entity* _entity);
+	void AddPowerUp(Entity* _entity);
 	void AddText(TextLabel* _text);
 
 	void RenderEntities(); // For entities
@@ -44,19 +45,23 @@ public:
 	void CheckCollisions();
 	void CheckBullets();
 	void CheckEnemies();
+	void CheckPowerUps();
 	void SetAllBulletsInactive();
 	void SetPositions(float _fDeltaTick);
 	void SetPlayerAlive();
+	bool AllPowerUpsActive();
 
 	CClock* GetClock();
 	AIBehaviour GetRandomBehaviour();
 	Entity* GetPlayer();
+	float GetRandomPosition();
 
 	// Levels
 	bool IsLevelComplete();
 	void NextLevel();
 	void SetLevelComplete(bool _IsComplete);
 	void SetLevel(int _iLevel);
+	vec3 GetRandomMapPosition();
 
 	// Gameplay
 	bool GameOver();
@@ -73,20 +78,32 @@ protected:
 private:
 
 	static GameScene* s_pGameScene;
+
+	//Timers
+	static std::clock_t m_startAITimer;
+	static double m_durationAITimer;
+	static std::clock_t m_startSpeedBoostTimer;
+	static double m_durationSpeedBoostTimer;
+	static std::clock_t m_startFastFireTimer;
+	static double m_durationFastFireTimer;
+
+	static int m_iExtraEnemies;
 	Camera m_Camera;
 
 	// Vectors
+	std::vector<TextLabel*> m_textLabels;
 	std::vector<Entity*> m_entities;
 	std::vector<Entity*> m_enemies;
-	std::vector<TextLabel*> m_textLabels;
 	std::vector<Entity*> m_playerBullets;
 	std::vector<Entity*> m_enemyBullets;
+	std::vector<Entity*> m_powerUps;
 
 	// Pointers
 	Entity* m_pBullet;
 	Entity* m_pPlayer;
 	Entity* m_pEnemy;
 	Entity* m_pMap;
+	Entity* m_pPowerUp;
 	TextLabel* m_pTextLabel;
 
 	int m_iCurrentLevel;

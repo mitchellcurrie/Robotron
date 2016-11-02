@@ -18,6 +18,7 @@
 #include "freeglut.h"
 #include "model.h"
 #include "ShaderLoader.h"
+#include "utils.h"
 
 // Static variables
 vec3 Model::m_PlayerPosition = vec3(0.0f, 0.0f, 0.0f);
@@ -30,6 +31,8 @@ Model::Model()
 	m_IsPlayer = false;
 	m_IsLeader = false;
 	m_bToBeDeleted = false;
+	m_bOutsideMap = false;
+	m_bIsEnemyBullet = false;
 }
 
 Model::~Model()
@@ -76,6 +79,10 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 //	m_pCamera = &_camera;
 	m_Camera = _camera;
 	m_position = _position;
+
+	if (_IsPlayer)
+		m_PlayerPosition = _position;
+
 	m_startingPosition = _position;
 	m_numVertices = _numVertices;
 	m_ModelType = _model;
@@ -136,20 +143,23 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	if (m_ModelType == QUAD)
 		filename1 = "Dirt.jpg";
 
-	//else if (m_ModelType == PYRAMID)
-	//	filename1 = "Pattern.jpg";
+	else if (m_ModelType == PYRAMID)
+		filename1 = "Pattern.jpg";
 
 	else if (m_ModelType == CUBE)
 	{
 		if (m_IsPlayer)
 			filename1 = "PlayerTexture.jpg";
-
 		else
 			filename1 = "EnemyTexture.jpg";
 	}
 
 	else if (m_ModelType == DOT)
-		filename1 = "Bullet.png";
+
+		if (m_bIsEnemyBullet)
+			filename1 = "EnemyBullet.png";
+		else
+			filename1 = "PlayerBullet.png";
 
 	//else if (m_ModelType == TRIANGLE)
 	//{
@@ -191,20 +201,24 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	if (m_ModelType == QUAD)
 		filename2 = "Dirt.jpg";
 
-	/*else if (m_ModelType == PYRAMID)
-		filename2 = "Pattern.jpg";*/
+	else if (m_ModelType == PYRAMID)
+		filename2 = "Pattern.jpg";
 
 	else if (m_ModelType == CUBE)
 	{
 		if (m_IsPlayer)
 			filename2 = "PlayerTexture.jpg";
-
 		else
 			filename2 = "EnemyTexture.jpg";
 	}
 
 	else if (m_ModelType == DOT)
-		filename2 = "Bullet.png";
+
+		if (m_bIsEnemyBullet)
+			filename2 = "EnemyBullet.png";
+		else
+			filename2 = "PlayerBullet.png";
+
 
 	
 	//else if (m_ModelType == TRIANGLE)
@@ -295,7 +309,11 @@ void Model::Render(vec3 _CurrentVelocity)
 	{
 		m_position += _CurrentVelocity;
 
-		m_position = CheckEdgeCollision();
+		if (HasEnteredMap())
+			m_bOutsideMap = false;
+
+		if (!m_bOutsideMap)
+			m_position = CheckEdgeCollision();
 
 		if (m_IsPlayer)		
 			m_PlayerPosition = m_position; // static variable stored in all models so they know the player's current position
@@ -316,7 +334,19 @@ void Model::Render(vec3 _CurrentVelocity)
 		else
 			m_position += _CurrentVelocity;
 			model = glm::translate(model, m_position);
+	}
 
+	else if (m_ModelType == PYRAMID)
+	{
+		
+		m_position += _CurrentVelocity;
+
+		m_position = CheckEdgeCollision();
+
+		model = glm::translate(model, m_position);
+		
+		GLfloat rotangle = 15.0f;
+		model = rotate(model, rotangle * abs((currentTime / 5)), glm::vec3(0.0f, -1.0f, 0.0f));	
 	}
 
 	//else if (m_ModelType == CUBE) // enemy
@@ -442,7 +472,7 @@ bool Model::IsLeader()
 
 vec3 Model::CheckEdgeCollision()
 {
-	float fMapSize = 14.5f;   // from utils function 
+	float fMapSize = MAP_SIZE - 0.5f;   // from utils function 
 
 	vec3 Position = m_position;
 
@@ -462,29 +492,32 @@ vec3 Model::CheckEdgeCollision()
 }
 
 bool Model::IsAtEdge()
-{
+{	
 	float fMapSize = 0.0f;
 	
-	if (m_ModelType == CUBE) // for enemies wandering
-		fMapSize = 14.49f;   // slightly smaller than edge collision function above
-	
+	if ((m_ModelType == CUBE) || (m_ModelType == PYRAMID))// for enemies wandering
+		fMapSize = MAP_SIZE - 0.51f;   // slightly smaller than edge collision function above
+
 	else if (m_ModelType == DOT) // for bullets
-		fMapSize = 14.50f;
+		fMapSize = MAP_SIZE - 0.5f;
 
-
-	if (m_position.x > fMapSize)
+	if ((m_position.x > fMapSize) || (m_position.x < -fMapSize) || (m_position.z > fMapSize) || (m_position.z < -fMapSize))
 		return true;
 
-	else if (m_position.x < -fMapSize)
+	else
+		return false;
+}
+
+bool Model::HasEnteredMap()
+{
+	float fMapSize = MAP_SIZE - 0.55f;
+
+	if (((m_position.x > -fMapSize) && (m_position.x < fMapSize)) &&
+	    ((m_position.z > -fMapSize) && (m_position.z < fMapSize)))
 		return true;
 
-	if (m_position.z > fMapSize)
-		return true;
-
-	else if (m_position.z < -fMapSize)
-		return true;
-
-	return false;
+	else
+		return false;
 }
 
 bool Model::IsWithinFlockingDistance(float _fDistance)
@@ -545,6 +578,21 @@ void Model::ResetToBeDeleted()
 void Model::ResetToStartingPosition()
 {
 	m_position = m_startingPosition;
+}
+
+void Model::SetOutsideMap(bool _b)
+{
+	m_bOutsideMap = _b;
+}
+
+bool Model::IsOutsideMap()
+{
+	return m_bOutsideMap;
+}
+
+void Model::SetAsEnemyBullet()
+{
+	m_bIsEnemyBullet = true;
 }
 
 

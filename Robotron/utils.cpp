@@ -73,7 +73,7 @@ void Utils::SetVerticesAndIndices (ModelType _model)
 
 	else if (_model == QUAD)
 	{
-		float fMapSize = 15.0f;
+		float fMapSize = MAP_SIZE;
 		// Quad
 		GLfloat vertices[]{
 			-fMapSize, -0.5f,  fMapSize, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,		// Top right  
@@ -175,12 +175,15 @@ void Utils::SetVerticesAndIndices (ModelType _model)
 	else if (_model == PYRAMID)
 	{
 		// Pyramid	
+
+		float fSize = 0.4f;
+
 		GLfloat vertices[]{
-			-1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // left back
-		     1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // right back
-			 1.0f, -1.0f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // right front
-			-1.0f, -1.0f,  1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // left front
-			 0.0f,  1.0f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top
+		   -fSize, -fSize, -fSize, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // left back
+			fSize, -fSize, -fSize, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // right back
+			fSize, -fSize,  fSize, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // right front
+		   -fSize, -fSize,  fSize, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // left front
+		     0.0f,  fSize,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top
 
 			 0.0f, -1.0f,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f  // bottom - used if we add another pyramid upside down	
 		};

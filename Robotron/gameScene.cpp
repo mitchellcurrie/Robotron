@@ -19,6 +19,13 @@
 
 // Static variables
 GameScene* GameScene::s_pGameScene{ 0 };
+std::clock_t GameScene::m_startAITimer = std::clock();
+double GameScene::m_durationAITimer = 0.0f;
+std::clock_t GameScene::m_startSpeedBoostTimer = std::clock();
+double GameScene::m_durationSpeedBoostTimer = 0.0f;
+std::clock_t GameScene::m_startFastFireTimer = std::clock();
+double GameScene::m_durationFastFireTimer = 0.0f;
+int GameScene::m_iExtraEnemies = 0;
 
 GameScene::GameScene()
 	//	: m_pClock(0)
@@ -29,7 +36,8 @@ GameScene::GameScene()
 	m_pEnemy = nullptr;
 	m_pMap = nullptr;
 	m_pTextLabel = nullptr;
-	m_iCurrentLevel = 1;
+	m_pPowerUp = nullptr;
+	m_iCurrentLevel = 15;
 	m_bLevelComplete = false;
 	m_fDeltaTick = 0.0f;
 }
@@ -74,6 +82,11 @@ void GameScene::AddEnemyBullet(Entity* _entity)
 	m_enemyBullets.push_back(_entity);
 }
 
+void GameScene::AddPowerUp(Entity* _entity)
+{
+	m_powerUps.push_back(_entity);
+}
+
 void GameScene::AddText(TextLabel* _text)
 {
 	m_textLabels.push_back(_text);
@@ -107,7 +120,7 @@ void GameScene::CheckBullets()
 
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
-		if ((rand() % 130 == 1) && (*it)->IsActive()) // 1/100 chance of firing
+		if ((rand() % 130 == 1) && (*it)->IsActive() && (!(*it)->GetModel()->IsOutsideMap())) // 1/130 chance of firing
 		{
 			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->SetActivity(true); // set next bullet in vector to active
 			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
@@ -122,13 +135,48 @@ void GameScene::CheckBullets()
 		if ((*it)->ToDelete())
 		{
 			(*it)->SetActivity(false); // set to inactive
-			(*it)->ResetVelocity(); // reset velocity
+			(*it)->VelocityToZero(); // reset velocity
 		}
 	}
 }
 
 void GameScene::CheckEnemies()
 {
+	// Extra enemy spawning
+	if ((m_iCurrentLevel > 9) && (m_iExtraEnemies > 0))
+	{
+		m_durationAITimer = (std::clock() - m_startAITimer) / (double)CLOCKS_PER_SEC;
+		float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 200.0f);
+		float fTimer = 0.0f;
+		float iRandom1 = 0.0f;
+		float iRandom2 = 0.0f;
+		
+		if (m_iCurrentLevel < 30)
+			fTimer = -0.1*m_iCurrentLevel + 3.5;	
+		else
+			fTimer = 0.5f;
+
+		if (m_durationAITimer > fTimer)
+		{
+			while ((iRandom1 == 0.0f) && (iRandom2 == 0.0f)) // Get random numbers either -30, 30 or 0, but don't want 0,0 because they will spawn in the middle of the map
+			{
+				iRandom1 = GetRandomPosition();
+				iRandom2 = GetRandomPosition();
+			}
+			
+  			m_enemies.at(Entity::GetEnemyCounter())->SetActivity(true); // set next bullet in vector to active
+			m_enemies.at(Entity::GetEnemyCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+			m_enemies.at(Entity::GetEnemyCounter())->SetModelPosition(vec3(iRandom1, 0.0f, iRandom2)); // Set position
+			m_enemies.at(Entity::GetEnemyCounter())->SetMaxVelocity(fMaxVelocity);
+			m_enemies.at(Entity::GetEnemyCounter())->SetModelOutsideMap(true);
+			Entity::IncrementEnemyCounter();
+
+			m_startAITimer = std::clock();
+			m_iExtraEnemies--;
+		}
+	}
+	
+	
 	// Check if any enemies need to be deleted - either through collision with bullet or player
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
@@ -136,6 +184,77 @@ void GameScene::CheckEnemies()
 		{
 			(*it)->SetActivity(false); // set to inactive
 		}
+	}
+}
+
+void GameScene::CheckPowerUps()
+{
+	int i = 0;
+
+	// Creating power ups
+	if ((rand() % 400 == 39) && !AllPowerUpsActive())
+	{
+		if (m_powerUps.at(0)->IsActive())
+			i = 1;
+
+		else if (m_powerUps.at(1)->IsActive())
+			i = 0;
+
+		else
+			i = rand() % 2;
+
+		m_powerUps.at(i)->SetActivity(true); // set random power up to active
+		m_powerUps.at(i)->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+		m_powerUps.at(i)->SetModelPosition(GetRandomMapPosition()); // Set position		
+	}
+
+	// Check if any powerups need to be deleted - either through collision with bullet or player
+	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++)
+	{
+		if ((*it)->ToDelete())
+		{
+			(*it)->SetActivity(false); // set to inactive
+		}
+	}
+
+	// Speed boosts
+	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	{
+		if ((*it)->GetEntityType() == PLAYER)
+		{
+			m_durationSpeedBoostTimer = (std::clock() - m_startSpeedBoostTimer) / (double)CLOCKS_PER_SEC;
+
+			if (m_durationSpeedBoostTimer > 5.0f)
+			{ 
+				(*it)->ResetMaxVelocity();
+				(*it)->SetSpedUp(false);
+				m_startSpeedBoostTimer = std::clock();
+			}
+		}
+	}	
+
+	// Fast firing
+	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	{
+		if ((*it)->GetEntityType() == PLAYER)
+		{
+			m_durationFastFireTimer = (std::clock() - m_startFastFireTimer) / (double)CLOCKS_PER_SEC;
+
+			if (m_durationFastFireTimer > 5.0f)
+			{
+				(*it)->ResetFireRate();
+				(*it)->SetFastFire(false);
+				m_startFastFireTimer = std::clock();
+			}
+		}
+	}
+
+	//Extra Lives
+
+	if (m_pPlayer->GetScoreCounter() >= 1000)
+	{
+		m_pPlayer->AddExtraLife();
+		m_pPlayer->ResetScoreCounter();
 	}
 }
 
@@ -167,6 +286,13 @@ void GameScene::RenderEntities()
 		if ((*it)->IsActive())
 			(*it)->Render();
 	}
+
+	// Render power ups
+	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++)
+	{
+		if ((*it)->IsActive())
+			(*it)->Render();
+	}
 }
 
 void GameScene::RenderText()
@@ -191,8 +317,8 @@ void GameScene::RenderText()
 
 		else if ((*it)->GetTextType() == SCORE)
 		{
-			(*it)->setText((*m_entities.begin())->GetScore());
-			//it->setPosition(m_entities.begin()->GetTextPosition());
+			(*it)->setText((m_pPlayer->GetScore()));
+			//it->setPosition(m_entities.begin()->GetTextPosition());	
 		}
 
 		else if ((*it)->GetTextType() == LEVEL)
@@ -202,7 +328,7 @@ void GameScene::RenderText()
 
 		else if ((*it)->GetTextType() == LIVES)
 		{
-			(*it)->setText((*m_entities.begin())->GetLives());
+			(*it)->setText(m_pPlayer->GetLives());
 		}
 		
 		(*it)->Render();
@@ -214,7 +340,7 @@ void GameScene::CreateEntities()
 	// Player Cube
 	m_pPlayer = new Entity;
 	m_pPlayer->SetAsPlayer();
-	m_pPlayer->Initialise(PLAYER, CUBE, 36, m_Camera, vec3(-12.0f, 0.0f, 12.0f), NONENEMY, 0.0f);	
+	m_pPlayer->Initialise(PLAYER, CUBE, 36, m_Camera, vec3(-15.0f, 0.0f, 15.5f), NONENEMY, 8.0f);	
 	AddEntity(m_pPlayer);
 
 	// Map Quad
@@ -231,11 +357,11 @@ void GameScene::CreateEntities()
 	}
 
 	// Enemy Bullets
-	for (int x{ 0 }; x < 40; x++)
+	for (int y{ 0 }; y < 40; y++)
 	{
 		m_pBullet = new Entity;
-		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);
 		m_pBullet->SetAsEnemyBullet();
+		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);		
 		AddEnemyBullet(m_pBullet);
 	}
 
@@ -267,7 +393,7 @@ void GameScene::CreateEntities()
 
 	// 6
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-6.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
@@ -309,21 +435,30 @@ void GameScene::CreateEntities()
 
 	// 15 enemies
 
+	// Extras for spawning in - 20 enemies 
+
+	for (int z{ 0 }; z < 20; z++)
+	{
+		m_pEnemy = new Entity;
+		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.1f, 0.0f, 0.1f), SEEK, fMaxVelocity);
+		AddEnemy(m_pEnemy);
+	}
+	
+	// 35 Enemies total
 
 	//////////////////////////////////////////////////////////////
 
+	// Power Ups
 
-	//// Pyramid
-	//Model ModelPyramid;
-	//vec3 positionPyramid(-2.5f, 1.9f, -2.0f);
-	//ModelPyramid.Initialise(PYRAMID, 18, m_Camera, positionPyramid);
-	//AddModel(ModelPyramid);
+	m_pPowerUp = new Entity;
+	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f); 
+	m_pPowerUp->SetPowerUpType(SPEEDBOOST);
+	AddPowerUp(m_pPowerUp);
 
-	//// Octagon
-	//Model ModelOctagon;
-	//vec3 positionOctagon(0.0f, 0.0f, 0.0f);
-	//ModelOctagon.Initialise(OCTAGON, 18, m_Camera, positionOctagon);
-	//AddModel(ModelOctagon);
+	m_pPowerUp = new Entity;
+	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f);
+	m_pPowerUp->SetPowerUpType(FASTFIRING);
+	AddPowerUp(m_pPowerUp);
 }
 
 void GameScene::UpdateEntities()
@@ -331,76 +466,96 @@ void GameScene::UpdateEntities()
 	// Player back to starting position
 	m_pPlayer->GetModel()->ResetToStartingPosition();
 
+	// These commented out to allow powerups to carry over between levels
+	// Uncomment to stop the effects when the level ends
+	/*m_pPlayer->ResetMaxVelocity();
+	m_pPlayer->ResetFireRate();                     
+	m_pPlayer->SetSpedUp(false);
+	m_pPlayer->SetFastFire(false);*/
 
 	// Reset AI positions and set to inactive.
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
 		(*it)->GetModel()->ResetToStartingPosition();
+		(*it)->GetModel()->ResetToBeDeleted();
 		(*it)->SetActivity(false);
 		(*it)->SetLeader(false);
+		(*it)->SetModelOutsideMap(false);
 	}
+
+	// Reset powerups and set to inactive.
+	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++)
+	{
+		(*it)->GetModel()->ResetToBeDeleted();
+		(*it)->SetActivity(false);
+	}
+
+	//Reset enemy counter
+	Entity::ResetEnemyCounter();
 
 	//Reset Leader back
 	m_enemies.at(0)->SetLeader(true);
 
+	m_iExtraEnemies = m_iCurrentLevel / 3;
+
 	// Spawn enemies based on level
 	if (m_iCurrentLevel == 1)
 	{
-		for (int x{ 0 }; x < 5; x++) // Number of enemies
+		for (int x{ 0 }; x < 7; x++) // Number of enemies
 		{
 			m_enemies.at(x)->SetAIBehaviour(FLEE); 
 			m_enemies.at(x)->SetActivity(true);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 
 	else if (m_iCurrentLevel == 2)
 	{
-		for (int x{ 0 }; x < 5; x++)
+		for (int x{ 0 }; x < 7; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(EVADE);
 			m_enemies.at(x)->SetActivity(true);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 
 	else if (m_iCurrentLevel == 3)
 	{
-		for (int x{ 0 }; x < 6; x++)
+		for (int x{ 0 }; x < 8; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(WANDER);
 			m_enemies.at(x)->SetActivity(true);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 
 	else if (m_iCurrentLevel == 4)
 	{
-		for (int x{ 0 }; x < 5; x++)
+		for (int x{ 0 }; x < 6; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(SEEK);
 			m_enemies.at(x)->SetActivity(true);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 
 	else if (m_iCurrentLevel == 5)
 	{
-		for (int x{ 0 }; x < 6; x++)
+		for (int x{ 0 }; x < 8; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(LEADERFOLLOW);
 			m_enemies.at(x)->SetActivity(true);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 
 	else if (m_iCurrentLevel == 6)
 	{
-		for (int x{ 0 }; x < 6; x++)
+		for (int x{ 0 }; x < 8; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(FLOCK);
 			m_enemies.at(x)->SetActivity(true);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 
@@ -410,46 +565,46 @@ void GameScene::UpdateEntities()
 		{
 			m_enemies.at(x)->SetAIBehaviour(PURSUE);
 			m_enemies.at(x)->SetActivity(true);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 
 	else // After level 7
 	{
-		float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 350.0f);
+		float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 375.0f);
 		//	float fMaxVelocity = 0.0001f;  // To test positions
 		//	float fMaxVelocity = 0.05f;
 
-		for (int x{ 0 }; x < 3; x++)
+		for (int x{ 0 }; x < 2; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(SEEK);
 			m_enemies.at(x)->SetActivity(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 
-		for (int x{ 3 }; x < 7; x++)
+		for (int x{ 2 }; x < 4; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(PURSUE);
 			m_enemies.at(x)->SetActivity(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 
-		for (int x{ 7 }; x < 12; x++)
+		for (int x{ 4 }; x < 11; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(WANDER);
 			m_enemies.at(x)->SetActivity(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 
-		for (int x{ 12 }; x < 15; x++)
+		for (int x{ 11 }; x < 15; x++)
 		{
 			m_enemies.at(x)->SetAIBehaviour(FLOCK);
 			m_enemies.at(x)->SetActivity(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-			m_enemies.at(x)->GetModel()->ResetToBeDeleted();
+			Entity::IncrementEnemyCounter();
 		}
 	}
 }
@@ -463,7 +618,7 @@ void GameScene::CreateText()
 	AddText(m_pTextLabel);
 
 	m_pTextLabel = new TextLabel(STATIC, "Score:", "freeagent.ttf");
-	m_pTextLabel->setPosition(glm::vec2(1200, 860));
+	m_pTextLabel->setPosition(glm::vec2(15, 820));
 	m_pTextLabel->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(m_pTextLabel);
 
@@ -473,7 +628,7 @@ void GameScene::CreateText()
 	AddText(m_pTextLabel);
 
 	m_pTextLabel = new TextLabel(SCORE, "", "freeagent.ttf");
-	m_pTextLabel->setPosition(glm::vec2(1430, 860));
+	m_pTextLabel->setPosition(glm::vec2(250, 820));
 	m_pTextLabel->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(m_pTextLabel);
 
@@ -483,12 +638,12 @@ void GameScene::CreateText()
 	AddText(m_pTextLabel);
 
 	m_pTextLabel = new TextLabel(STATIC, "Level:", "freeagent.ttf");
-	m_pTextLabel->setPosition(glm::vec2(1200, 780));
+	m_pTextLabel->setPosition(glm::vec2(1200, 860));
 	m_pTextLabel->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(m_pTextLabel);
 
 	m_pTextLabel = new TextLabel(LEVEL, "", "freeagent.ttf");
-	m_pTextLabel->setPosition(glm::vec2(1430, 780));
+	m_pTextLabel->setPosition(glm::vec2(1430, 860));
 	m_pTextLabel->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
 	AddText(m_pTextLabel);
 
@@ -527,6 +682,13 @@ void GameScene::SetPositions(float _fDeltaTick)
 
 	//Enemy Bullets
 	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++)
+	{
+		if ((*it)->IsActive())
+			(*it)->SetPositions(_fDeltaTick);
+	}
+
+	//Power ups
+	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++)
 	{
 		if ((*it)->IsActive())
 			(*it)->SetPositions(_fDeltaTick);
@@ -608,9 +770,9 @@ void GameScene::CheckCollisions()
 
 				}
 
-				(*it)->AddToScore(10);
+				m_pPlayer->AddToScore(10);
 
-				//break;
+				break;
 			}
 		}
 	}
@@ -626,6 +788,40 @@ void GameScene::CheckCollisions()
 			{
 				(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy bullet
 				(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
+
+				//break;
+			}
+		}
+	}
+
+	// Player and power up collisions
+	for (auto it = m_entities.begin(); it != m_entities.end(); it++)
+	{
+		for (auto it2 = m_powerUps.begin(); it2 != m_powerUps.end(); it2++)
+		{
+			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+				((*it)->GetEntityType() == PLAYER) && ((*it2)->IsActive()))
+			{
+				(*it2)->GetModel()->SetToBeDeleted();
+
+				m_pPlayer->AddToScore(20);
+
+				if ((*it2)->GetPowerUpType() == SPEEDBOOST)
+				{
+					(*it)->SpeedUp();
+					(*it)->SetSpedUp(true);
+					m_startSpeedBoostTimer = std::clock();
+				}
+
+				if ((*it2)->GetPowerUpType() == FASTFIRING)
+				{
+					(*it)->FastFire();
+					(*it)->SetFastFire(true);
+					m_startFastFireTimer = std::clock();
+				}
+							
+				return;
 
 				//break;
 			}
@@ -743,6 +939,7 @@ void GameScene::Update()
 	
 	CheckEnemies();  // Check if any enemies need to be deactivated - if set "to delete"
 	CheckBullets();  // Check if any bullets need to be deactivated - if set "to delete"
+	CheckPowerUps();
 	SetPositions(m_fDeltaTick);  // Set all entity positions	
 	CheckCollisions();
 	
@@ -753,7 +950,8 @@ void GameScene::SetUp()
 	GLfloat width = 1600;
 	GLfloat height = 900;
 
-	Camera Camera(vec3(0.0f, 15.0f, 22.0f), vec3(0.0f, -0.9f, -1.0f), vec3(0.0f, 1.0f, 0.0f), width, height);
+//	Camera Camera(vec3(0.0f, 15.0f, 22.0f), vec3(0.0f, -0.9f, -1.0f), vec3(0.0f, 1.0f, 0.0f), width, height);   // for map size 15.0f
+	Camera Camera(vec3(0.0f, 18.0f, 25.0f), vec3(0.0f, -0.9f, -1.0f), vec3(0.0f, 1.0f, 0.0f), width, height);
 	//            Pos:  x      y      z    Front:       y tilt          Up:       
 
 	AddCamera(Camera);
@@ -783,6 +981,44 @@ void GameScene::SetPlayerAlive()
 	m_pPlayer->SetToAlive();
 }
 
+float GameScene::GetRandomPosition()
+{
+	int iRandom = rand() % 3;
+
+	if (iRandom == 0)
+		return MAP_SIZE * 2.0f;
+
+	else if (iRandom == 1)
+		return MAP_SIZE * -2.0f;
+
+	else
+		return 0.0f;
+}
+
+vec3 GameScene::GetRandomMapPosition()
+{
+	vec3 temp = vec3(0.0f, 0.0f, 0.0f);
+
+	int iMapSize = static_cast<int>(MAP_SIZE);
+
+	temp.x = static_cast<float>((rand() % ((iMapSize * 2) - 1)) - (iMapSize - 1));
+	temp.z = static_cast<float>((rand() % ((iMapSize * 2) - 1)) - (iMapSize - 1));
+
+
+	return temp;
+}
+
+bool GameScene::AllPowerUpsActive()
+{
+	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++)
+	{
+		if (!(*it)->IsActive())
+			return false;		
+	}
+
+	return true;
+}
+
 //void GameScene::SetDeltaTick(float _fTick)
 //{
 //	m_fDeltaTick = _fTick;
@@ -805,4 +1041,3 @@ void GameScene::SetPlayerAlive()
 //
 //	// Sleep(15);
 //}
-

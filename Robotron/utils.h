@@ -13,6 +13,8 @@
 
 #pragma once
 
+#define MAP_SIZE 17.0f
+
 struct Position
 {
 	// Not required
@@ -71,6 +73,13 @@ enum AIBehaviour
 	WANDER,
 	LEADERFOLLOW,
 	FLOCK,
+};
+
+enum PowerUpType
+{
+	NONPOWERUP,
+	SPEEDBOOST,
+	FASTFIRING
 };
 
 class Utils
