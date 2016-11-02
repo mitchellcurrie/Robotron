@@ -37,7 +37,7 @@ GameScene::GameScene()
 	m_pMap = nullptr;
 	m_pTextLabel = nullptr;
 	m_pPowerUp = nullptr;
-	m_iCurrentLevel = 15;
+	m_iCurrentLevel = 1;
 	m_bLevelComplete = false;
 	m_fDeltaTick = 0.0f;
 }
