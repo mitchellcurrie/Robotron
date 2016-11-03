@@ -17,7 +17,12 @@
 
 	To do:
 
-	Add 1 more power up - extra life?
+	Text for extra Life - goes away after e.g. 5 kills or next level, or death
+	Change multiple text to then switch off
+
+	Bonus stuff:
+	Power up text for when active - set colour to red when timer almost finished
+
 
 */
 

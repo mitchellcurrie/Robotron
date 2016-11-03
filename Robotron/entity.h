@@ -22,7 +22,7 @@ public:
 
 	Entity();
 	~Entity();
-	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity);
+	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity, char* _filename);
 	virtual void Render();
 	virtual void SetPositions(float _fDeltaTick);
 	
@@ -64,6 +64,7 @@ public:
 	void FastFire();
 	void SetFastFire(bool _b);
 	void ResetFireRate();
+	void SetEnemyToFlee(bool _b);
 
 	static bool IsBulletFired();
 	bool ToDelete();
@@ -73,6 +74,7 @@ public:
 	bool IsPlayerDead();
 	bool IsSpedUp();
 	bool IsFiringFast();
+	bool IsFleeing();
 	//bool IsEnemyFiring();
 
 	std::string GetAIName();
@@ -143,6 +145,7 @@ private:
 	bool m_bIsEnemyBullet;
 	bool m_bIsSpedUp;
 	bool m_bFastFire;
+	bool m_bIsFleeing;
 //	bool m_bEnemyToFire;
 };
 

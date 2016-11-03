@@ -79,7 +79,8 @@ enum PowerUpType
 {
 	NONPOWERUP,
 	SPEEDBOOST,
-	FASTFIRING
+	FASTFIRING,
+	ENEMYFLEE
 };
 
 class Utils

@@ -76,8 +76,8 @@ void Utils::SetVerticesAndIndices (ModelType _model)
 		float fMapSize = MAP_SIZE;
 		// Quad
 		GLfloat vertices[]{
-			-fMapSize, -0.5f,  fMapSize, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,		// Top right  
-			-fMapSize, -0.5f, -fMapSize, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,		// Bottom right 
+			-fMapSize, -0.5f,  fMapSize, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,		// Top right
+			-fMapSize, -0.5f, -fMapSize, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,		// Bottom right	
 			 fMapSize, -0.5f, -fMapSize, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,		// Bottom left
 			 fMapSize, -0.5f,  fMapSize, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,		// Top left
 
@@ -86,8 +86,11 @@ void Utils::SetVerticesAndIndices (ModelType _model)
 		};
 
 		GLuint indices[]{
-			2, 1, 0, // First Triangle
-			2, 3, 0  // Second Triangle
+			//2, 1, 0, // First Triangle
+			//2, 3, 0  // Second Triangle
+			1, 3, 2, // First Triangle
+			1,3,0 // Second Triangle
+
 
 		};
 

@@ -33,6 +33,7 @@ Model::Model()
 	m_bToBeDeleted = false;
 	m_bOutsideMap = false;
 	m_bIsEnemyBullet = false;
+	m_pcFileName = "";
 }
 
 Model::~Model()
@@ -45,10 +46,12 @@ Model::~Model()
 * Parameters: ModelType enum, number of vertices, camera, position vector
 * Return: void
 ********************/
-void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader)
+void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader, char* _filename)
 {
 	m_IsPlayer = _IsPlayer;
 	m_IsLeader = _IsLeader;
+
+	m_pcFileName = _filename;
 
 	Utils::SetVerticesAndIndices(_model);
 
@@ -138,28 +141,28 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	// Load image, create texture and generate mipmaps
 	int width, height;
 
-	char* filename1{ 0 };
+//	char* filename1{ 0 };
 
-	if (m_ModelType == QUAD)
-		filename1 = "Dirt.jpg";
+	//if (m_ModelType == QUAD)
+	//	filename1 = "Dirt.jpg";
 
-	else if (m_ModelType == PYRAMID)
-		filename1 = "Pattern.jpg";
+	//else if (m_ModelType == PYRAMID)
+	//	filename1 = "Pattern.jpg";
 
-	else if (m_ModelType == CUBE)
-	{
-		if (m_IsPlayer)
-			filename1 = "PlayerTexture.jpg";
-		else
-			filename1 = "EnemyTexture.jpg";
-	}
+	//else if (m_ModelType == CUBE)
+	//{
+	//	if (m_IsPlayer)
+	//		filename1 = "PlayerTexture.jpg";
+	//	else
+	//		filename1 = "EnemyTexture.jpg";
+	//}
 
-	else if (m_ModelType == DOT)
+	//else if (m_ModelType == DOT)
 
-		if (m_bIsEnemyBullet)
-			filename1 = "EnemyBullet.png";
-		else
-			filename1 = "PlayerBullet.png";
+	//	if (m_bIsEnemyBullet)
+	//		filename1 = "EnemyBullet.png";
+	//	else
+	//		filename1 = "PlayerBullet.png";
 
 	//else if (m_ModelType == TRIANGLE)
 	//{
@@ -173,7 +176,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	//	iSize = 6;
 	//}
 		
-	unsigned char* image = SOIL_load_image(filename1, &width, &height, 0, SOIL_LOAD_RGB);
+	unsigned char* image = SOIL_load_image(m_pcFileName, &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
@@ -196,28 +199,28 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	//**Load image and create texture 2
 	// Load image, create texture and generate mipmaps
 
-	char* filename2{ 0 };
+	//char* filename2{ 0 };
 
-	if (m_ModelType == QUAD)
-		filename2 = "Dirt.jpg";
+	//if (m_ModelType == QUAD)
+	//	filename2 = "Dirt.jpg";
 
-	else if (m_ModelType == PYRAMID)
-		filename2 = "Pattern.jpg";
+	//else if (m_ModelType == PYRAMID)
+	//	filename2 = "Pattern.jpg";
 
-	else if (m_ModelType == CUBE)
-	{
-		if (m_IsPlayer)
-			filename2 = "PlayerTexture.jpg";
-		else
-			filename2 = "EnemyTexture.jpg";
-	}
+	//else if (m_ModelType == CUBE)
+	//{
+	//	if (m_IsPlayer)
+	//		filename2 = "PlayerTexture.jpg";
+	//	else
+	//		filename2 = "EnemyTexture.jpg";
+	//}
 
-	else if (m_ModelType == DOT)
+	//else if (m_ModelType == DOT)
 
-		if (m_bIsEnemyBullet)
-			filename2 = "EnemyBullet.png";
-		else
-			filename2 = "PlayerBullet.png";
+	//	if (m_bIsEnemyBullet)
+	//		filename2 = "EnemyBullet.png";
+	//	else
+	//		filename2 = "PlayerBullet.png";
 
 
 	
@@ -234,7 +237,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	//}
 	
 
-	unsigned char* image2 = SOIL_load_image(filename2, &width, &height, 0, SOIL_LOAD_RGB);
+	unsigned char* image2 = SOIL_load_image(m_pcFileName, &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image2);
@@ -309,17 +312,25 @@ void Model::Render(vec3 _CurrentVelocity)
 	{
 		m_position += _CurrentVelocity;
 
-		if (HasEnteredMap())
-			m_bOutsideMap = false;
-
-		if (!m_bOutsideMap)
+		if (m_IsPlayer)
+		{
 			m_position = CheckEdgeCollision();
-
-		if (m_IsPlayer)		
 			m_PlayerPosition = m_position; // static variable stored in all models so they know the player's current position
+		}
+		else //AI
+		{
+			/*if (HasEnteredMap())
+				m_bOutsideMap = false;
 
-		if (m_IsLeader)
-			m_LeaderPosition = m_position; // static variable stored in all models so they know the player's current position
+			if (HasExitedMap())
+				m_bOutsideMap = true;*/
+
+		//	if (!m_bOutsideMap)
+			//	m_position = CheckEdgeCollisionAI();
+
+			if (m_IsLeader)
+				m_LeaderPosition = m_position; // static variable stored in all models so they know the player's current position
+		}
 
 		model = glm::translate(model, m_position);
 	}
@@ -491,6 +502,27 @@ vec3 Model::CheckEdgeCollision()
 	return Position;
 }
 
+vec3 Model::CheckEdgeCollisionAI()
+{
+	float fMapSize = MAP_SIZE - 0.5f;   // from utils function 
+
+	vec3 Position = m_position;
+
+	if (m_position.x > fMapSize)
+		Position.x = fMapSize;
+
+	else if (m_position.x < -fMapSize)
+		Position.x = -fMapSize;
+
+	if (m_position.z > fMapSize)
+		Position.z = fMapSize;
+
+	else if (m_position.z < -fMapSize)
+		Position.z = -fMapSize;
+
+	return Position;
+}
+
 bool Model::IsAtEdge()
 {	
 	float fMapSize = 0.0f;
@@ -510,10 +542,22 @@ bool Model::IsAtEdge()
 
 bool Model::HasEnteredMap()
 {
-	float fMapSize = MAP_SIZE - 0.55f;
+	float fMapSize = MAP_SIZE -0.55f;
 
-	if (((m_position.x > -fMapSize) && (m_position.x < fMapSize)) &&
-	    ((m_position.z > -fMapSize) && (m_position.z < fMapSize)))
+	if (((m_position.x >= -fMapSize) && (m_position.x <= fMapSize)) &&
+	    ((m_position.z >= -fMapSize) && (m_position.z <= fMapSize)))
+		return true;
+
+	else
+		return false;
+}
+
+bool Model::HasExitedMap()
+{
+	float fMapSize = MAP_SIZE -0.55f;
+
+	if (((m_position.x < -fMapSize) && (m_position.x > fMapSize)) &&
+		((m_position.z < -fMapSize) && (m_position.z > fMapSize)))
 		return true;
 
 	else

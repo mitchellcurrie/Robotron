@@ -50,6 +50,8 @@ public:
 	void SetPositions(float _fDeltaTick);
 	void SetPlayerAlive();
 	bool AllPowerUpsActive();
+	void SetEnemiesToFlee();
+	void ResetEnemyBehaviours();
 
 	CClock* GetClock();
 	AIBehaviour GetRandomBehaviour();
@@ -82,10 +84,15 @@ private:
 	//Timers
 	static std::clock_t m_startAITimer;
 	static double m_durationAITimer;
+
 	static std::clock_t m_startSpeedBoostTimer;
 	static double m_durationSpeedBoostTimer;
+
 	static std::clock_t m_startFastFireTimer;
 	static double m_durationFastFireTimer;
+
+	static std::clock_t m_startEnemyFleeTimer;
+	static double m_durationEnemyFleeTimer;
 
 	static int m_iExtraEnemies;
 	Camera m_Camera;

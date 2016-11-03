@@ -25,6 +25,8 @@ std::clock_t GameScene::m_startSpeedBoostTimer = std::clock();
 double GameScene::m_durationSpeedBoostTimer = 0.0f;
 std::clock_t GameScene::m_startFastFireTimer = std::clock();
 double GameScene::m_durationFastFireTimer = 0.0f;
+std::clock_t GameScene::m_startEnemyFleeTimer = std::clock();
+double GameScene::m_durationEnemyFleeTimer = 0.0f;
 int GameScene::m_iExtraEnemies = 0;
 
 GameScene::GameScene()
@@ -189,19 +191,15 @@ void GameScene::CheckEnemies()
 
 void GameScene::CheckPowerUps()
 {
-	int i = 0;
+	int i = rand() % 3;
 
 	// Creating power ups
-	if ((rand() % 400 == 39) && !AllPowerUpsActive())
+	if ((rand() % 400 == 39) && !AllPowerUpsActive())   // change back to 1 in 400
 	{
-		if (m_powerUps.at(0)->IsActive())
-			i = 1;
-
-		else if (m_powerUps.at(1)->IsActive())
-			i = 0;
-
-		else
-			i = rand() % 2;
+		while (m_powerUps.at(i)->IsActive())
+		{
+			i = rand() % 3;
+		}
 
 		m_powerUps.at(i)->SetActivity(true); // set random power up to active
 		m_powerUps.at(i)->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
@@ -249,6 +247,16 @@ void GameScene::CheckPowerUps()
 		}
 	}
 
+	// Enemy fleeing
+		
+	m_durationEnemyFleeTimer = (std::clock() - m_startEnemyFleeTimer) / (double)CLOCKS_PER_SEC;
+
+	if (m_durationEnemyFleeTimer > 2.0f)
+	{
+		ResetEnemyBehaviours();
+		m_startEnemyFleeTimer = std::clock();
+	}
+		
 	//Extra Lives
 
 	if (m_pPlayer->GetScoreCounter() >= 1000)
@@ -340,19 +348,19 @@ void GameScene::CreateEntities()
 	// Player Cube
 	m_pPlayer = new Entity;
 	m_pPlayer->SetAsPlayer();
-	m_pPlayer->Initialise(PLAYER, CUBE, 36, m_Camera, vec3(-15.0f, 0.0f, 15.5f), NONENEMY, 8.0f);	
+	m_pPlayer->Initialise(PLAYER, CUBE, 36, m_Camera, vec3(-15.0f, 0.0f, -15.0f), NONENEMY, 8.0f, "PlayerTexture.jpg");
 	AddEntity(m_pPlayer);
 
 	// Map Quad
 	m_pMap = new Entity;
-	m_pMap->Initialise(MAP, QUAD, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);
+	m_pMap->Initialise(MAP, QUAD, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Map.jpg");
 	AddEntity(m_pMap);
 
 	// Player Bullets
 	for (int x{ 0 }; x < 10; x++)
 	{
 		m_pBullet = new Entity;
-		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);
+		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "PlayerBullet.png");
 		AddPlayerBullet(m_pBullet);
 	}
 
@@ -361,7 +369,7 @@ void GameScene::CreateEntities()
 	{
 		m_pBullet = new Entity;
 		m_pBullet->SetAsEnemyBullet();
-		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f);		
+		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "EnemyBullet.png");
 		AddEnemyBullet(m_pBullet);
 	}
 
@@ -372,65 +380,65 @@ void GameScene::CreateEntities()
 	// 1
 	m_pEnemy = new Entity;
 	m_pEnemy->SetLeader(true);
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.1f, 0.0f, 0.1f), WANDER, fMaxVelocity); //GetRandomBehaviour()
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.1f, 0.0f, 0.1f), WANDER, fMaxVelocity, "EnemyTexture.jpg"); //GetRandomBehaviour()
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), WANDER, fMaxVelocity); //GetRandomBehaviour()
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 5.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg"); //GetRandomBehaviour()
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, 2.0f), WANDER, fMaxVelocity); //GetRandomBehaviour()
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, 2.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg"); //GetRandomBehaviour()
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, -5.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, -2.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, -2.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	// 6
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-6.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-6.0f, 0.0f, -5.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, -2.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, -2.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, 2.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(2.0f, 0.0f, 2.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 5.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	// 11
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(5.0f, 0.0f, 0.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 5.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 5.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, -5.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, -5.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 0.0f), WANDER, fMaxVelocity);
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-5.0f, 0.0f, 0.0f), WANDER, fMaxVelocity, "EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	// 15 enemies
@@ -440,7 +448,7 @@ void GameScene::CreateEntities()
 	for (int z{ 0 }; z < 20; z++)
 	{
 		m_pEnemy = new Entity;
-		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.1f, 0.0f, 0.1f), SEEK, fMaxVelocity);
+		m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.1f, 0.0f, 0.1f), SEEK, fMaxVelocity, "EnemyTexture.jpg");
 		AddEnemy(m_pEnemy);
 	}
 	
@@ -451,13 +459,18 @@ void GameScene::CreateEntities()
 	// Power Ups
 
 	m_pPowerUp = new Entity;
-	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f); 
+	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f, "GreenPattern.png");
 	m_pPowerUp->SetPowerUpType(SPEEDBOOST);
 	AddPowerUp(m_pPowerUp);
 
 	m_pPowerUp = new Entity;
-	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f);
+	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f, "PinkPattern.png");
 	m_pPowerUp->SetPowerUpType(FASTFIRING);
+	AddPowerUp(m_pPowerUp);
+
+	m_pPowerUp = new Entity;
+	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f, "WhitePattern.png");
+	m_pPowerUp->SetPowerUpType(ENEMYFLEE);
 	AddPowerUp(m_pPowerUp);
 }
 
@@ -481,7 +494,11 @@ void GameScene::UpdateEntities()
 		(*it)->SetActivity(false);
 		(*it)->SetLeader(false);
 		(*it)->SetModelOutsideMap(false);
+		(*it)->SetMaxVelocity(0.05f);
 	}
+
+	// Reset AI behaviours - from fleeing powerup
+	ResetEnemyBehaviours();
 
 	// Reset powerups and set to inactive.
 	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++)
@@ -499,7 +516,32 @@ void GameScene::UpdateEntities()
 	m_iExtraEnemies = m_iCurrentLevel / 3;
 
 	// Spawn enemies based on level
-	if (m_iCurrentLevel == 1)
+	if (m_iCurrentLevel == 0) {
+		
+		// Create 2 quads (1 for the main image, the other one is the keyboard cursor)
+		
+
+		// Keyboard with indeces
+		int index = 1;
+		const int MAX_INDEX = 2;
+
+		//if up then index--
+		// if down then index++
+		// move the quad accordingly
+
+		if (index <= 0) {
+
+			index = MAX_INDEX;
+
+		}
+		else if (index >= MAX_INDEX) {
+
+			index = 1;
+
+		}
+
+	}
+	else if (m_iCurrentLevel == 1)
 	{
 		for (int x{ 0 }; x < 7; x++) // Number of enemies
 		{
@@ -731,25 +773,7 @@ void GameScene::CheckCollisions()
 			}
 		}
 	}
-
-	// Enemy and enemy collisions
-	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
-	{
-		for (auto it2 = m_enemies.begin(); it2 != m_enemies.end(); it2++)
-		{
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&   // within a distance
-				(((*it)->GetModel()->GetPosition().x) != ((*it2)->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
-				((*it)->GetModel()->GetPosition().z) != ((*it2)->GetModel()->GetPosition().z) &&
-				((*it)->IsActive()) && ((*it2)->IsActive()))
-			{
-					(*it)->Flee((*it2)->GetModel()->GetPosition());
-				//		break;
-			}
-
-		}
-	}
-
+	
 	// Player bullet and enemy collisions
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
 	{
@@ -820,10 +844,117 @@ void GameScene::CheckCollisions()
 					(*it)->SetFastFire(true);
 					m_startFastFireTimer = std::clock();
 				}
+
+				if ((*it2)->GetPowerUpType() == ENEMYFLEE)
+				{
+					SetEnemiesToFlee();
+					m_startEnemyFleeTimer = std::clock();
+			    }
 							
 				return;
 
 				//break;
+			}
+		}
+	}
+
+	// Enemy and wall collisions
+	float fMapSize = MAP_SIZE - 0.5f;
+
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		if ((!((*it)->GetAIBehaviour() == LEADERFOLLOW)))// && (!((*it)->GetAIBehaviour() == FLOCK)))
+		{
+			if (((*it)->GetModel()->HasEnteredMap()) && ((*it)->GetModel()->IsOutsideMap()))
+				(*it)->GetModel()->SetOutsideMap(false);
+
+			else if (((*it)->GetModel()->HasExitedMap()) && (!((*it)->GetModel()->IsOutsideMap())))
+				(*it)->GetModel()->SetOutsideMap(true);
+
+			////Right side and bottom
+			//if (((((*it)->GetModel()->GetPosition().x) > fMapSize) ||
+			//	(((*it)->GetModel()->GetPosition().z) > fMapSize)) &&
+			//	((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+			//	(!((*it)->GetModel()->IsOutsideMap())))
+			//{
+			//	(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
+			//}
+
+			//Right
+			if ((((*it)->GetModel()->GetPosition().x) > fMapSize) &&
+				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+				(!((*it)->GetModel()->IsOutsideMap())))
+			{
+				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));	
+				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+				//	((*it)->GetModel()->GetPosition().x)
+				//	(*it)->Seek(vec3(fMapSize, 0.0f, (*it)->GetModel()->GetPosition().z));
+				int iRand = rand() % 2;
+
+				if (iRand == 0)
+					(*it)->GetModel()->SetPosition(vec3(fMapSize, 0.0f, ((*it)->GetModel()->GetPosition().z)));
+				else
+					(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));				
+			}
+
+			//Left
+			if ((((*it)->GetModel()->GetPosition().x) < -fMapSize) &&
+				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+				(!((*it)->GetModel()->IsOutsideMap())))
+			{
+				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));	
+				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+				//	((*it)->GetModel()->GetPosition().x)
+				//	(*it)->Seek(vec3(fMapSize, 0.0f, (*it)->GetModel()->GetPosition().z));
+				(*it)->GetModel()->SetPosition(vec3(-fMapSize, 0.0f, ((*it)->GetModel()->GetPosition().z)));
+			}
+
+
+			//Top
+			if ((((*it)->GetModel()->GetPosition().z) < -fMapSize) &&
+				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+				(!((*it)->GetModel()->IsOutsideMap())))
+			{
+				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));
+				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+				//	((*it)->GetModel()->GetPosition().x)
+				//	(*it)->Seek(vec3((*it)->GetModel()->GetPosition().z, 0.0f, fMapSize));
+				(*it)->GetModel()->SetPosition(vec3(((*it)->GetModel()->GetPosition().x), 0.0f, -fMapSize));
+			}
+
+			//Bottom
+			if ((((*it)->GetModel()->GetPosition().z) > fMapSize) &&
+				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+				(!((*it)->GetModel()->IsOutsideMap())))
+			{
+				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));
+				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+				//	((*it)->GetModel()->GetPosition().x)
+				//	(*it)->Seek(vec3((*it)->GetModel()->GetPosition().z, 0.0f, fMapSize));
+				int iRand = rand() % 2;
+
+				if (iRand == 0)
+					(*it)->GetModel()->SetPosition(vec3(((*it)->GetModel()->GetPosition().x), 0.0f, fMapSize));
+
+				else
+					(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
+			}
+		}		
+	}
+
+	// Enemy and enemy collisions
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		for (auto it2 = m_enemies.begin(); it2 != m_enemies.end(); it2++)
+		{
+			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
+				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&   // within a distance
+				(((*it)->GetModel()->GetPosition().x) != ((*it2)->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
+				((*it)->GetModel()->GetPosition().z) != ((*it2)->GetModel()->GetPosition().z) &&
+				((*it)->IsActive()) && ((*it2)->IsActive()))
+			{
+				(*it)->Flee((*it2)->GetModel()->GetPosition());
+				//		break;						
 			}
 		}
 	}
@@ -1017,6 +1148,22 @@ bool GameScene::AllPowerUpsActive()
 	}
 
 	return true;
+}
+
+void GameScene::SetEnemiesToFlee()
+{
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		(*it)->SetEnemyToFlee(true);			
+	}
+}
+
+void GameScene::ResetEnemyBehaviours()
+{
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++)
+	{
+		(*it)->SetEnemyToFlee(false);
+	}
 }
 
 //void GameScene::SetDeltaTick(float _fTick)

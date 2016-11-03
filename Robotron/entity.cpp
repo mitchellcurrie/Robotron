@@ -60,6 +60,7 @@ Entity::Entity()
 	m_bIsEnemyBullet = false;
 	m_bIsSpedUp = false;
 	m_bFastFire = false;
+	m_bIsFleeing = false;
 	m_iPlayerLives = 3;
 	m_iScore = 0;
 	m_iScoreCounter = 0;
@@ -76,7 +77,7 @@ Entity::~Entity()
 
 }
 
-void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity)
+void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity, char* _filename)
 {
 	m_pModel = new Model;
 	m_EntityType = _entity;
@@ -84,7 +85,7 @@ void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertic
 	if (m_bIsEnemyBullet)
 		m_pModel->SetAsEnemyBullet();
 
-	m_pModel->Initialise(_model, _numVertices, _camera, _position, IsPlayer(), IsLeader());	
+	m_pModel->Initialise(_model, _numVertices, _camera, _position, IsPlayer(), IsLeader(), _filename);
 	m_Behaviour = _behaviour;
 	m_fMaxVelocity = _maxVelocity;
 	m_fStartingMaxVelocity = _maxVelocity;
@@ -181,7 +182,9 @@ void Entity::SetPositions(float _fDeltaTick)
 
 		////////////  BULLET Firing ////////////////
 
-		if (keyState[(unsigned char)32] == BUTTON_DOWN) // space bar
+		//if (keyState[(unsigned char)32] == BUTTON_DOWN) // space bar
+		if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'i'] == BUTTON_DOWN) ||
+			(keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'l'] == BUTTON_DOWN))
 		{
 			m_duration = (std::clock() - m_start) / (double)CLOCKS_PER_SEC;
 			
@@ -198,15 +201,22 @@ void Entity::SetPositions(float _fDeltaTick)
 
 	else if (m_EntityType == ENEMY)// Enemy movement
 	{	
-		switch (m_Behaviour)
+		if (m_bIsFleeing)
 		{
+			Flee(m_pModel->GetPlayerPosition());
+		}
+		
+		else
+		{
+			switch (m_Behaviour)
+			{
 			case SEEK:
 			{
 				Seek(m_pModel->GetPlayerPosition());
 				m_AIName = "Seek";
 				m_textPosition = vec2(720, 860);
 			}
-			break;
+				break;
 
 			case FLEE:
 			{
@@ -214,7 +224,7 @@ void Entity::SetPositions(float _fDeltaTick)
 				m_AIName = "Flee";
 				m_textPosition = vec2(720, 860);
 			}
-			break;
+				break;
 
 			case PURSUE:
 			{
@@ -222,7 +232,7 @@ void Entity::SetPositions(float _fDeltaTick)
 				m_AIName = "Pursue";
 				m_textPosition = vec2(670, 860);
 			}
-			break;
+				break;
 
 			case EVADE:
 			{
@@ -230,7 +240,7 @@ void Entity::SetPositions(float _fDeltaTick)
 				m_AIName = "Evade";
 				m_textPosition = vec2(690, 860);
 			}
-			break;
+				break;
 
 			case WANDER:
 			{
@@ -238,7 +248,7 @@ void Entity::SetPositions(float _fDeltaTick)
 				m_AIName = "Wander";
 				m_textPosition = vec2(680, 860);
 			}
-			break;
+				break;
 
 			case LEADERFOLLOW:
 			{
@@ -246,7 +256,7 @@ void Entity::SetPositions(float _fDeltaTick)
 				m_AIName = "Leader Following";
 				m_textPosition = vec2(495, 860);
 			}
-			break;
+				break;
 
 			case FLOCK:
 			{
@@ -254,13 +264,14 @@ void Entity::SetPositions(float _fDeltaTick)
 				m_AIName = "Flocking";
 				m_textPosition = vec2(658, 860);
 			}
-			break;
+				break;
 
 			default:
 			{
 
 			}
-			break;
+				break;
+			}
 		}
 
 		if (m_pModel->IsLeader())
@@ -939,6 +950,16 @@ void Entity::ResetFireRate()
 void Entity::AddExtraLife()
 {
 	m_iPlayerLives++;
+}
+
+bool Entity::IsFleeing()
+{
+	return m_bIsFleeing;
+}
+
+void Entity::SetEnemyToFlee(bool _b)
+{
+	m_bIsFleeing = _b;
 }
 
 //bool Entity::IsEnemyFiring()

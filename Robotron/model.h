@@ -25,7 +25,7 @@ public:
 
 	Model();
 	~Model();
-	void Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader);
+	void Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader, char* _filename);
 	void Render(vec3 _CurrentVelocity);
 	void Rotate();
 
@@ -35,8 +35,10 @@ public:
 	vec3 GetLeaderPosition();
 	vec3 GetLastPlayerVelocity();
 	vec3 CheckEdgeCollision();
+	vec3 CheckEdgeCollisionAI();
 
 	bool HasEnteredMap();
+	bool HasExitedMap();
 	bool IsAtEdge();
 	bool IsLeader();
 	bool IsWithinFlockingDistance(float _fDistance);
@@ -77,4 +79,6 @@ private:
 	bool m_bToBeDeleted;
 	bool m_bOutsideMap;
 	bool m_bIsEnemyBullet;
+
+	char* m_pcFileName;
 };
