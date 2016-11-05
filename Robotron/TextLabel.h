@@ -38,6 +38,7 @@ public:
 	void setScale(GLfloat _scale);
 	void setText(std::string _text);
 	TextType GetTextType();
+	glm::vec2 GetPosition() const;
 
 private:
 	std::string text;

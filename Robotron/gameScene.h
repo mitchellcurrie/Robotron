@@ -39,7 +39,7 @@ public:
 	void RenderEntities(); // For entities
 	void RenderText(); // For text
 	
-	void CreateText();
+	void CreateTextFields();
 	void CreateEntities();
 	void UpdateEntities();
 	void CheckCollisions();
@@ -66,9 +66,14 @@ public:
 	vec3 GetRandomMapPosition();
 
 	// Gameplay
-	bool GameOver();
+	bool IsGameOver();
 	void Update();
-	void SetUp();
+	void SetUp(int _fWidth, int _fHeight);
+
+	// Keyboard
+	void GameScene::KeyDown(unsigned char key, int x, int y);
+
+	void GameScene::KeyUp(unsigned char key, int x, int y);
 	
 	/*void SetDeltaTick(float _fTick);
 	float GetDeltaTick();*/
@@ -117,5 +122,11 @@ private:
 	bool m_bLevelComplete;
 	float m_fDeltaTick;
 
+	int m_iGameState;
+
+	int m_iWidth, m_iHeight;
+
+	static unsigned char keyState[255];
+	static int m_iMenuIndex;
 
 };

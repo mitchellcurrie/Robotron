@@ -28,6 +28,9 @@
     <ClCompile Include="TextLabel.cpp">
       <Filter>Other</Filter>
     </ClCompile>
+    <ClCompile Include="global.cpp">
+      <Filter>Other</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ShaderLoader.h">
@@ -52,6 +55,9 @@
       <Filter>Main stuff</Filter>
     </ClInclude>
     <ClInclude Include="TextLabel.h">
+      <Filter>Other</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
       <Filter>Other</Filter>
     </ClInclude>
   </ItemGroup>

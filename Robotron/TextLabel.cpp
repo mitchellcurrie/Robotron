@@ -1,7 +1,8 @@
 #include "TextLabel.h"
 
+#include "global.h"
 
-TextLabel::TextLabel(TextType _type, std::string text, std::string font){
+TextLabel::TextLabel(TextType _type, std::string text, std::string font) {
 
 	m_TextType = _type;
 
@@ -11,12 +12,11 @@ TextLabel::TextLabel(TextType _type, std::string text, std::string font){
 
 	this->setPosition(position);
 
-
 	ShaderLoader shaderLoader;
 	program = shaderLoader.CreateProgram("Text.vs", "Text.fs");
 
-	GLfloat width = 1600;
-	GLfloat height = 900;
+	GLfloat width = WIDTH;
+	GLfloat height = HEIGHT;
 
 	glm::mat4 projection = glm::ortho(0.0f, width, 0.0f, height);
 	glUseProgram(program);
@@ -40,12 +40,10 @@ TextLabel::TextLabel(TextType _type, std::string text, std::string font){
 	// Disable byte-alignment restriction
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-
 	// Load first 128 characters of ASCII set
-	for (GLubyte c = 0; c < 128; c++)
-	{
+	for (GLubyte c = 0; c < 128; c++) {
 		// Load character glyph 
-		if (FT_Load_Char(face, c, FT_LOAD_RENDER)){
+		if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
 			std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
 			continue;
 		}
@@ -105,12 +103,9 @@ TextLabel::TextLabel(TextType _type, std::string text, std::string font){
 
 }
 
+TextLabel::~TextLabel() {}
 
-TextLabel::~TextLabel(){
-}
-
-void TextLabel::Render(){
-
+void TextLabel::Render() {
 
 	glm::vec2 textPos = this->position;
 
@@ -127,8 +122,7 @@ void TextLabel::Render(){
 
 	// Iterate through all characters
 	std::string::const_iterator c;
-	for (c = text.begin(); c != text.end(); c++)
-	{
+	for (c = text.begin(); c != text.end(); c++) {
 		Character ch = Characters[*c];
 
 		GLfloat xpos = textPos.x + ch.Bearing.x * this->scale;
@@ -194,35 +188,37 @@ void TextLabel::Render(){
 	// Pass them to the shaders
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-//	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	//	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 	glutPostRedisplay(); //the render function is called
 
-
 }
 
-void TextLabel::setPosition(glm::vec2 _position){
+void TextLabel::setPosition(glm::vec2 _position) {
 
 	this->position = _position;
 }
 
-void TextLabel::setColor(glm::vec3 _color){
+void TextLabel::setColor(glm::vec3 _color) {
 
 	this->color = _color;
 }
 
-void TextLabel::setScale(GLfloat _scale){
+void TextLabel::setScale(GLfloat _scale) {
 
 	this->scale = _scale;
 }
 
-void TextLabel::setText(std::string _text){
+void TextLabel::setText(std::string _text) {
 
 	this->text = _text;
 
 }
 
-TextType TextLabel::GetTextType()
-{
+TextType TextLabel::GetTextType() {
 	return m_TextType;
+}
+
+glm::vec2 TextLabel::GetPosition() const {
+	return (position);
 }

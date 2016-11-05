@@ -44,40 +44,43 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-void render()
-{
+#include "global.h"
+
+static int windowID;
+
+void render() {
 	GameScene::GetInstance().Update();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	GameScene::GetInstance().RenderEntities(); // for entities
 	GameScene::GetInstance().RenderText(); // for text
 
 	glutSwapBuffers();
 }
 
-void keyboard(unsigned char key, int x, int y)
-{
-	Entity::entityKeyboard(key, x, y);
+void KeyDown(unsigned char key, int x, int y) {
+
+	Entity::KeyDown(key, x, y);
+	GameScene::GetInstance().KeyDown(key, x, y);
 }
 
-void keyboard_up(unsigned char key, int x, int y)
-{
-	Entity::entityKeyboard_up(key, x, y);
+void KeyUp(unsigned char key, int x, int y) {
+	Entity::KeyUp(key, x, y);
+	GameScene::GetInstance().KeyUp(key, x, y);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(170, 35);
-	glutInitWindowSize(1600, 900);
-	glutCreateWindow("Robotron");
+	glutInitWindowSize(WIDTH, HEIGHT);
+	windowID = glutCreateWindow("Robotron");
 
 	glewInit();
 
-	GameScene::GetInstance().SetUp();
+	GameScene::GetInstance().SetUp(WIDTH, HEIGHT);
 
 	// glutIdleFunc(update);
 
@@ -87,9 +90,9 @@ int main(int argc, char **argv)
 	// register callbacks
 	glutDisplayFunc(render);
 
-	glutKeyboardFunc(keyboard);
-	glutKeyboardUpFunc(keyboard_up);
-	
+	glutKeyboardFunc(KeyDown);
+	glutKeyboardUpFunc(KeyUp);
+
 	glutMainLoop();
 
 	return 0;

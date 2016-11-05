@@ -26,7 +26,7 @@
 #include "ShaderLoader.h"
 #include "utils.h"
 
-unsigned char keyState[255];
+unsigned char Entity::keyState[255];
 
 // Static variables
 std::clock_t Entity::m_start = std::clock();
@@ -104,6 +104,7 @@ void Entity::SetPositions(float _fDeltaTick)
 {
 	if (m_EntityType == PLAYER)
 	{
+
 		m_bBulletFired = false;
 
 		////////////  PLAYER Direction ////////////////
@@ -434,12 +435,12 @@ bool Entity::IsPlayer()
 		return false;
 }
 
-void Entity::entityKeyboard(unsigned char key, int x, int y)
+void Entity::KeyDown(unsigned char key, int x, int y)
 {
 	keyState[key] = BUTTON_DOWN;
 }
 
-void Entity::entityKeyboard_up(unsigned char key, int x, int y)
+void Entity::KeyUp(unsigned char key, int x, int y)
 {
 	keyState[key] = BUTTON_UP;
 }
