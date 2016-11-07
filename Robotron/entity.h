@@ -7,8 +7,9 @@
 // (c) 2005 - 2016 Media Design School
 //
 // File Name : entity.h
-// Description : Entity header file - sets indices and vertices, VBO, VAO, EBO, performs rotations and updates model position
+// Description : Entity header file
 // Mail : Mitchell.Currie@mediadesignschool.com
+//		  Juan.Rodriguez@mediadesignschool.com
 //
 
 #pragma once
@@ -26,8 +27,8 @@ public:
 	virtual void Render();
 	virtual void SetPositions(float _fDeltaTick);
 	
-	static void entityKeyboard(unsigned char key, int x, int y);
-	static void entityKeyboard_up(unsigned char key, int x, int y);
+	static void KeyDown(unsigned char key, int x, int y);
+	static void KeyUp(unsigned char key, int x, int y);
 	static void IncrementPlayerBulletCounter();
 	static void IncrementEnemyBulletCounter();
 	static void IncrementEnemyCounter();
@@ -129,6 +130,8 @@ private:
 	vec2 m_textPosition;
 	PowerUpType m_PowerUp;
 	
+	static unsigned char keyState[255];
+
 	float m_fMaxForce;
 	float m_fMaxVelocity;
 	float m_fStartingMaxVelocity;

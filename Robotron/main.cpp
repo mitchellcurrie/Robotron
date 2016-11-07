@@ -13,19 +13,6 @@
 //		  Mitchell.Currie@mediadesignschool.com
 //        
 
-/*
-
-	To do:
-
-	Text for extra Life - goes away after e.g. 5 kills or next level, or death
-	Change multiple text to then switch off
-
-	Bonus stuff:
-	Power up text for when active - set colour to red when timer almost finished
-
-
-*/
-
 #include <iostream>
 #include <vector>
 
@@ -40,44 +27,68 @@
 
 #include <ft2build.h>
 
+// #include "FMOD\fmod.hpp"
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-void render()
-{
+#include "global.h"
+
+static int windowID;
+
+/***********************
+* render: Updates the game, renders entities and renders text
+* Parameters: none
+* Return: void
+********************/
+void render() {
 	GameScene::GetInstance().Update();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	GameScene::GetInstance().RenderEntities(); // for entities
 	GameScene::GetInstance().RenderText(); // for text
-
 	glutSwapBuffers();
 }
 
-void keyboard(unsigned char key, int x, int y)
-{
-	Entity::entityKeyboard(key, x, y);
+/***********************
+* key down: gets keyboard input for pressing a key down
+* Parameters: unsigned char for key pressed, integer x and y
+* Return: void
+********************/
+void KeyDown(unsigned char key, int x, int y) {
+
+	Entity::KeyDown(key, x, y);
+	GameScene::GetInstance().KeyDown(key, x, y);
 }
 
-void keyboard_up(unsigned char key, int x, int y)
-{
-	Entity::entityKeyboard_up(key, x, y);
+/***********************
+* key up: gets keyboard input for releasing a key
+* Parameters: unsigned char for key released, integer x and y
+* Return: void
+********************/
+void KeyUp(unsigned char key, int x, int y) {
+	Entity::KeyUp(key, x, y);
+	GameScene::GetInstance().KeyUp(key, x, y);
 }
 
-int main(int argc, char **argv)
-{
+/***********************
+* main: main function of the game
+* Parameters: integer argc, char ** argv
+* Return: integer
+********************/
+int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(170, 35);
-	glutInitWindowSize(1600, 900);
-	glutCreateWindow("Robotron");
+	glutInitWindowSize(WIDTH, HEIGHT);
+	windowID = glutCreateWindow("Robotron");
 
 	glewInit();
 
-	GameScene::GetInstance().SetUp();
+	GameScene::GetInstance().SetUp(WIDTH, HEIGHT);
 
 	// glutIdleFunc(update);
 
@@ -87,9 +98,9 @@ int main(int argc, char **argv)
 	// register callbacks
 	glutDisplayFunc(render);
 
-	glutKeyboardFunc(keyboard);
-	glutKeyboardUpFunc(keyboard_up);
-	
+	glutKeyboardFunc(KeyDown);
+	glutKeyboardUpFunc(KeyUp);
+
 	glutMainLoop();
 
 	return 0;

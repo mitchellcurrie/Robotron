@@ -7,8 +7,9 @@
 // (c) 2005 - 2016 Media Design School
 //
 // File Name : gameScene.h
-// Description : Game scene header file - singleton game scene class that creates the models
+// Description : Game scene header file
 // Mail : Mitchell.Currie@mediadesignschool.com
+//		  Juan.Rodriguez@mediadesignschool.com
 //
 
 #pragma once
@@ -19,6 +20,7 @@
 #include "TextLabel.h"
 #include "level.h"
 #include <vector>
+#include "FMOD\fmod.hpp"
 
 class GameScene
 {
@@ -39,7 +41,7 @@ public:
 	void RenderEntities(); // For entities
 	void RenderText(); // For text
 	
-	void CreateText();
+	void CreateTextFields();
 	void CreateEntities();
 	void UpdateEntities();
 	void CheckCollisions();
@@ -66,9 +68,17 @@ public:
 	vec3 GetRandomMapPosition();
 
 	// Gameplay
-	bool GameOver();
+	bool IsGameOver();
 	void Update();
-	void SetUp();
+	void SetUp(int _fWidth, int _fHeight);
+
+	// Keyboard
+	void GameScene::KeyDown(unsigned char key, int x, int y);
+	void GameScene::KeyUp(unsigned char key, int x, int y);
+
+	// Sounds
+	bool InitFmod();
+	const bool LoadAudio();
 	
 	/*void SetDeltaTick(float _fTick);
 	float GetDeltaTick();*/
@@ -117,5 +127,27 @@ private:
 	bool m_bLevelComplete;
 	float m_fDeltaTick;
 
+	int m_iGameState;
 
+	int m_iWidth, m_iHeight;
+
+	static unsigned char keyState[255];
+	static int m_iMenuIndex;
+
+	// Sounds
+	FMOD::System* m_pAudioMgr;
+	FMOD::Sound* m_pBGMusic;
+	FMOD::Sound* m_pDieSound;
+	FMOD::Sound* m_pHitSound;
+	FMOD::Sound* m_pPowerUpSound;
+	FMOD::Sound* m_pSelectSound;
+	FMOD::Sound* m_pScrollSound;
+	FMOD::Sound* m_pShootSound;
+	FMOD::Channel* m_pBGChannel;
+	FMOD::Channel* m_pDieChannel;
+	FMOD::Channel* m_pHitChannel;
+	FMOD::Channel* m_pPowerUpChannel;
+	FMOD::Channel* m_pSelectChannel;
+	FMOD::Channel* m_pScrollChannel;
+	FMOD::Channel* m_pShootChannel;
 };

@@ -7,8 +7,9 @@
 // (c) 2005 - 2016 Media Design School
 //
 // File Name : model.h
-// Description : Model header file - sets indices and vertices, VBO, VAO, EBO, performs rotations and updates model position
+// Description : Model header file
 // Mail : Mitchell.Currie@mediadesignschool.com
+//		  Juan.Rodriguez@mediadesignschool.com
 //
 
 #pragma once
@@ -35,7 +36,6 @@ public:
 	vec3 GetLeaderPosition();
 	vec3 GetLastPlayerVelocity();
 	vec3 CheckEdgeCollision();
-	vec3 CheckEdgeCollisionAI();
 
 	bool HasEnteredMap();
 	bool HasExitedMap();

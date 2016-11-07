@@ -35,6 +35,15 @@ struct IndexFormat
 	// Not required 
 };
 
+enum GameState 
+{
+	MENU,
+	PLAY,
+	CREDITS,
+	GAME_OVER,
+	QUIT
+};
+
 enum ModelType
 {
 	TRIANGLE,
@@ -56,11 +65,18 @@ enum EntityType
 
 enum TextType
 {
-	STATIC,
-	AIDESCRIPTION,
-	SCORE,
-	LEVEL,
-	LIVES
+	P_LABEL,
+	P_AIDESCRIPTION,
+	P_SCORE,
+	P_LEVEL,
+	P_LIVES,
+	M_LABEL,
+	M_CURSOR,
+	G_LABEL,
+	G_SCORE,
+	G_LEVEL,
+	C_LABEL
+
 };
 
 enum AIBehaviour

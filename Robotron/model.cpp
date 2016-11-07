@@ -7,8 +7,9 @@
 // (c) 2005 - 2016 Media Design School
 //
 // File Name : model.cpp
-// Description : Model implementation file - sets indices and vertices, VBO, VAO, EBO, performs rotations and updates model position
+// Description : Model implementation file
 // Mail : Mitchell.Currie@mediadesignschool.com
+//		  Juan.Rodriguez@mediadesignschool.com
 //
 
 #pragma once
@@ -43,7 +44,7 @@ Model::~Model()
 
 /***********************
 * Model initialise: creates the model based on the parameters
-* Parameters: ModelType enum, number of vertices, camera, position vector
+* Parameters: ModelType enum, number of vertices, camera, position vector, bool is player, bool is leader, char* filename 
 * Return: void
 ********************/
 void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, bool _IsPlayer, bool _IsLeader, char* _filename)
@@ -92,7 +93,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 //	glewInit();
 	ShaderLoader shaderLoader;
 	//	program = shaderLoader.CreateProgram("VAO_Triangle.vs", "VAO_Triangle.fs");
-	program = shaderLoader.CreateProgram("Shape.vs", "Shape.fs");
+	program = shaderLoader.CreateProgram("Assets//Shaders//Shape.vs", "Assets//Shaders//Shape.fs");
 
 	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // GL_FILL, GL_LINE
@@ -154,7 +155,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	//	if (m_IsPlayer)
 	//		filename1 = "PlayerTexture.jpg";
 	//	else
-	//		filename1 = "EnemyTexture.jpg";
+	//		filename1 = "Assets//Textures//EnemyTexture.jpg";
 	//}
 
 	//else if (m_ModelType == DOT)
@@ -212,7 +213,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	//	if (m_IsPlayer)
 	//		filename2 = "PlayerTexture.jpg";
 	//	else
-	//		filename2 = "EnemyTexture.jpg";
+	//		filename2 = "Assets//Textures//EnemyTexture.jpg";
 	//}
 
 	//else if (m_ModelType == DOT)
@@ -277,7 +278,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 
 /***********************
 * Model render: renders the model 
-* Parameters: none
+* Parameters: vec3 current velocity
 * Return: void
 ********************/
 void Model::Render(vec3 _CurrentVelocity)
@@ -481,6 +482,11 @@ bool Model::IsLeader()
 		return false;
 }
 
+/***********************
+* Model check edge collision: checks the collisions between the outer walls of the map and the player and returns an updated position if needed
+* Parameters: none
+* Return: vec3 position
+********************/
 vec3 Model::CheckEdgeCollision()
 {
 	float fMapSize = MAP_SIZE - 0.5f;   // from utils function 
@@ -502,27 +508,11 @@ vec3 Model::CheckEdgeCollision()
 	return Position;
 }
 
-vec3 Model::CheckEdgeCollisionAI()
-{
-	float fMapSize = MAP_SIZE - 0.5f;   // from utils function 
-
-	vec3 Position = m_position;
-
-	if (m_position.x > fMapSize)
-		Position.x = fMapSize;
-
-	else if (m_position.x < -fMapSize)
-		Position.x = -fMapSize;
-
-	if (m_position.z > fMapSize)
-		Position.z = fMapSize;
-
-	else if (m_position.z < -fMapSize)
-		Position.z = -fMapSize;
-
-	return Position;
-}
-
+/***********************
+* Model is at edge: checks if a model is at the edge of the map
+* Parameters: none
+* Return: bool true or false
+********************/
 bool Model::IsAtEdge()
 {	
 	float fMapSize = 0.0f;
@@ -540,6 +530,11 @@ bool Model::IsAtEdge()
 		return false;
 }
 
+/***********************
+* Model has entered map: checks if an enemy has entered the map after spawning
+* Parameters: none
+* Return: bool true or false
+********************/
 bool Model::HasEnteredMap()
 {
 	float fMapSize = MAP_SIZE -0.55f;
@@ -552,6 +547,11 @@ bool Model::HasEnteredMap()
 		return false;
 }
 
+/***********************
+* Model has exited map: checks if an enemy has exited the map
+* Parameters: none
+* Return: bool true or false
+********************/
 bool Model::HasExitedMap()
 {
 	float fMapSize = MAP_SIZE -0.55f;
@@ -564,6 +564,11 @@ bool Model::HasExitedMap()
 		return false;
 }
 
+/***********************
+* Model is within flocking distance: checks if an enemy is within a certain distance to the leader enemy
+* Parameters: float distance
+* Return: bool true or false
+********************/
 bool Model::IsWithinFlockingDistance(float _fDistance)
 {
 	if ((abs((m_position.x) - (m_LeaderPosition.x)) < _fDistance) &&   // within a distance
@@ -574,6 +579,11 @@ bool Model::IsWithinFlockingDistance(float _fDistance)
 		return false;
 }
 
+/***********************
+* Model is within player range: checks if a model is within a certain distance to the player
+* Parameters: float distance
+* Return: bool true or false
+********************/
 bool Model::IsWithinPlayerRange(float _fDistance)
 {
 	if ((abs((m_position.x) - (m_PlayerPosition.x)) < _fDistance) &&   // within a distance

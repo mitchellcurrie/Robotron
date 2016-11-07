@@ -9,6 +9,7 @@
 // File Name : Entity.cpp
 // Description : Entity implementation file 
 // Mail : Mitchell.Currie@mediadesignschool.com
+//		  Juan.Rodriguez@mediadesignschool.com
 //
 
 #pragma once
@@ -26,7 +27,7 @@
 #include "ShaderLoader.h"
 #include "utils.h"
 
-unsigned char keyState[255];
+unsigned char Entity::keyState[255];
 
 // Static variables
 std::clock_t Entity::m_start = std::clock();
@@ -69,7 +70,7 @@ Entity::Entity()
 	vec2 m_textPosition = vec2(0.0f, 0.0f);
 	m_PowerUp = NONPOWERUP;
 	m_Behaviour = WANDER;
-	srand(time(NULL));
+	srand(static_cast<unsigned int>(time(NULL)));
 }
 
 Entity::~Entity()
@@ -77,6 +78,11 @@ Entity::~Entity()
 
 }
 
+/***********************
+* Entity initialise: creates the entity based on the parameters
+* Parameters: Entity Type, Model Type, number of vertices, Camera, position vector, AI Behaviour, maximum velocity float, char* filename)
+* Return: void
+********************/
 void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity, char* _filename)
 {
 	m_pModel = new Model;
@@ -94,25 +100,36 @@ void Entity::Initialise(EntityType _entity, ModelType _model, GLsizei _numVertic
 		m_start = std::clock();
 }
 
-
+/***********************
+* Entity render: renders the entity by calling model render
+* Parameters: none
+* Return: void
+********************/
 void Entity::Render()
 {
 	m_pModel->Render(m_CurrentVelocity);
 }
 
+/***********************
+* Entity set positions: sets the positions of the entities by updating their velocities based on keyboard input (player and bullets) or an algorithm (AI)
+* Parameters: float delta tick
+* Return: void
+********************/
 void Entity::SetPositions(float _fDeltaTick)
 {
 	if (m_EntityType == PLAYER)
 	{
+
 		m_bBulletFired = false;
 
-		////////////  PLAYER Direction ////////////////
+		////////////  PLAYER Direction //////////////// Keyboard inputs ///////
 
 		// float fSpeed = 8;
 		float fSpeed = m_fMaxVelocity;
 
 		// Forward left Movement
-		if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) && (keyState[(unsigned char)'w'] == BUTTON_DOWN))
+		if (((keyState[(unsigned char)'a'] == BUTTON_DOWN) || (keyState[(unsigned char)'A'] == BUTTON_DOWN)) && 
+			((keyState[(unsigned char)'w'] == BUTTON_DOWN) || (keyState[(unsigned char)'W'] == BUTTON_DOWN)))
 		{
 			printf("Move cube forward left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
@@ -120,7 +137,8 @@ void Entity::SetPositions(float _fDeltaTick)
 		}
 
 		// Forward right Movement
-		else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) && (keyState[(unsigned char)'w'] == BUTTON_DOWN))
+		else if (((keyState[(unsigned char)'d'] == BUTTON_DOWN) || (keyState[(unsigned char)'D'] == BUTTON_DOWN)) &&
+			     ((keyState[(unsigned char)'w'] == BUTTON_DOWN) || (keyState[(unsigned char)'W'] == BUTTON_DOWN)))
 		{
 			printf("Move cube forward right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
@@ -128,7 +146,8 @@ void Entity::SetPositions(float _fDeltaTick)
 		}
 
 		// Backward left Movement
-		else if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) && (keyState[(unsigned char)'s'] == BUTTON_DOWN))
+		else if (((keyState[(unsigned char)'a'] == BUTTON_DOWN) || (keyState[(unsigned char)'A'] == BUTTON_DOWN)) &&
+			     ((keyState[(unsigned char)'s'] == BUTTON_DOWN) || (keyState[(unsigned char)'S'] == BUTTON_DOWN)))
 		{
 			printf("Move cube backward left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
@@ -136,7 +155,8 @@ void Entity::SetPositions(float _fDeltaTick)
 		}
 
 		// Backward right Movement
-		else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) && (keyState[(unsigned char)'s'] == BUTTON_DOWN))
+		else if (((keyState[(unsigned char)'d'] == BUTTON_DOWN) || (keyState[(unsigned char)'D'] == BUTTON_DOWN)) &&
+		    	 ((keyState[(unsigned char)'s'] == BUTTON_DOWN) || (keyState[(unsigned char)'S'] == BUTTON_DOWN)))
 		{
 			printf("Move cube backward right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
@@ -144,7 +164,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		}
 
 		// Left Movement
-		else if (keyState[(unsigned char)'a'] == BUTTON_DOWN)
+		else if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) || (keyState[(unsigned char)'A'] == BUTTON_DOWN))
 		{
 			printf("Move cube left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
@@ -152,7 +172,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		}
 
 		// Right movement
-		else if (keyState[(unsigned char)'d'] == BUTTON_DOWN)
+		else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) || (keyState[(unsigned char)'D'] == BUTTON_DOWN))
 		{
 			printf("Move cube right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
@@ -160,7 +180,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		}
 
 		// Forward movement
-		else if (keyState[(unsigned char)'w'] == BUTTON_DOWN)
+		else if ((keyState[(unsigned char)'w'] == BUTTON_DOWN) || (keyState[(unsigned char)'W'] == BUTTON_DOWN))
 		{
 			printf("Move cube forward \n");
 			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
@@ -168,7 +188,7 @@ void Entity::SetPositions(float _fDeltaTick)
 		}
 
 		// Back movement
-		else if (keyState[(unsigned char)'s'] == BUTTON_DOWN)
+		else if ((keyState[(unsigned char)'s'] == BUTTON_DOWN) || (keyState[(unsigned char)'S'] == BUTTON_DOWN))
 		{
 			printf("Move cube back \n");
 			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
@@ -180,11 +200,12 @@ void Entity::SetPositions(float _fDeltaTick)
 			m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 		}
 
-		////////////  BULLET Firing ////////////////
+		////////////  BULLET Firing ///////////////////////////// Keyboard inputs ///////
 
-		//if (keyState[(unsigned char)32] == BUTTON_DOWN) // space bar
 		if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'i'] == BUTTON_DOWN) ||
-			(keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'l'] == BUTTON_DOWN))
+			(keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'l'] == BUTTON_DOWN) ||
+			(keyState[(unsigned char)'J'] == BUTTON_DOWN) || (keyState[(unsigned char)'I'] == BUTTON_DOWN) ||
+			(keyState[(unsigned char)'K'] == BUTTON_DOWN) || (keyState[(unsigned char)'L'] == BUTTON_DOWN))
 		{
 			m_duration = (std::clock() - m_start) / (double)CLOCKS_PER_SEC;
 			
@@ -199,7 +220,9 @@ void Entity::SetPositions(float _fDeltaTick)
 		m_CurrentPlayerVelocity = m_CurrentVelocity;
 	}
 
-	else if (m_EntityType == ENEMY)// Enemy movement
+	////////////// Enemy movement   /////////////////////  AI algorithms   /////////////////
+
+	else if (m_EntityType == ENEMY)
 	{	
 		if (m_bIsFleeing)
 		{
@@ -286,56 +309,60 @@ void Entity::SetPositions(float _fDeltaTick)
 			float fSpeed = 45.0f;
 
 			// Forward left 
-			if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+			if (((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'J'] == BUTTON_DOWN)) &&
+				((keyState[(unsigned char)'i'] == BUTTON_DOWN) || (keyState[(unsigned char)'I'] == BUTTON_DOWN)))
 			{
 				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
 			}
 
 			// Forward right 
-			else if ((keyState[(unsigned char)'l'] == BUTTON_DOWN) && (keyState[(unsigned char)'i'] == BUTTON_DOWN))
+			else if (((keyState[(unsigned char)'l'] == BUTTON_DOWN) || (keyState[(unsigned char)'L'] == BUTTON_DOWN)) &&
+					 ((keyState[(unsigned char)'i'] == BUTTON_DOWN) || (keyState[(unsigned char)'I'] == BUTTON_DOWN)))
 			{
 				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
 			}
 
 			// Backward left 
-			else if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) && (keyState[(unsigned char)'k'] == BUTTON_DOWN))
+			else if (((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'J'] == BUTTON_DOWN)) &&
+				     ((keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'K'] == BUTTON_DOWN)))
 			{
 				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
 			}
 
 			// Backward right 
-			else if ((keyState[(unsigned char)'k'] == BUTTON_DOWN) && (keyState[(unsigned char)'l'] == BUTTON_DOWN))
+			else if (((keyState[(unsigned char)'l'] == BUTTON_DOWN) || (keyState[(unsigned char)'L'] == BUTTON_DOWN)) &&
+				     ((keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'K'] == BUTTON_DOWN)))
 			{
 				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
 			}
 
 			// Left 
-			else if (keyState[(unsigned char)'j'] == BUTTON_DOWN)
+			else if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'J'] == BUTTON_DOWN))
 			{
 				m_CurrentBulletVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
 			}
 
 			// Right 
-			else if (keyState[(unsigned char)'l'] == BUTTON_DOWN)
+			else if ((keyState[(unsigned char)'l'] == BUTTON_DOWN) || (keyState[(unsigned char)'L'] == BUTTON_DOWN))
 			{
 				m_CurrentBulletVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
 			}
 
 			// Forward 
-			else if (keyState[(unsigned char)'i'] == BUTTON_DOWN)
+			else if ((keyState[(unsigned char)'i'] == BUTTON_DOWN) || (keyState[(unsigned char)'I'] == BUTTON_DOWN))
 			{
 				m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
 			}
 
 			// Back 
-			else if (keyState[(unsigned char)'k'] == BUTTON_DOWN)
+			else if ((keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'K'] == BUTTON_DOWN))
 			{
 				m_CurrentBulletVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
 				m_LastBulletVelocity = m_CurrentBulletVelocity;
@@ -434,16 +461,21 @@ bool Entity::IsPlayer()
 		return false;
 }
 
-void Entity::entityKeyboard(unsigned char key, int x, int y)
+void Entity::KeyDown(unsigned char key, int x, int y)
 {
 	keyState[key] = BUTTON_DOWN;
 }
 
-void Entity::entityKeyboard_up(unsigned char key, int x, int y)
+void Entity::KeyUp(unsigned char key, int x, int y)
 {
 	keyState[key] = BUTTON_UP;
 }
 
+/***********************
+* Entity limit force: limits the force applied to the object for the purposes of calculating its new velocity
+* Parameters: steering force vector
+* Return: vec3 vector that's limited
+********************/
 vec3 Entity::LimitForce(vec3 _steering)
 {
 	vec3 Steering = _steering;
@@ -460,6 +492,11 @@ vec3 Entity::LimitForce(vec3 _steering)
 	return Steering;
 }
 
+/***********************
+* Entity limit velocity: limits the velocity applied to the object for the purposes of calculating its new velocity
+* Parameters: velocity vector
+* Return: vec3 vector that's limited
+********************/
 vec3 Entity::LimitVelocity(vec3 _velocity)
 {
 	vec3 Velocity = _velocity;
@@ -476,6 +513,11 @@ vec3 Entity::LimitVelocity(vec3 _velocity)
 	return Velocity;
 }
 
+/***********************
+* Entity seek: AI algorithm where the objects move towards another objects current position
+* Parameters: vec3 position - of what is being seeked
+* Return: void
+********************/
 void Entity::Seek(vec3 _position)
 {
 	vec3 DesiredVelocity = _position - m_pModel->GetPosition();
@@ -490,6 +532,11 @@ void Entity::Seek(vec3 _position)
 	m_CurrentVelocity = LimitVelocity(m_CurrentVelocity);
 }
 
+/***********************
+* Entity flee: AI algorithm where the objects move away from another objects current position
+* Parameters: vec3 position - of what is being fleed
+* Return: void
+********************/
 void Entity::Flee(vec3 _position)
 {
 	vec3 DesiredVelocity = m_pModel->GetPosition() - _position;
@@ -504,6 +551,11 @@ void Entity::Flee(vec3 _position)
 	m_CurrentVelocity = LimitVelocity(m_CurrentVelocity);
 }
 
+/***********************
+* Entity pursue: AI algorithm where the objects move towards another objects future position
+* Parameters: vec3 position - of what is being pursued
+* Return: void
+********************/
 void Entity::Pursue()
 {
 	vec3 Distance = m_pModel->GetPlayerPosition() - m_pModel->GetPosition();
@@ -515,7 +567,7 @@ void Entity::Pursue()
 
 	vec3 FuturePosition = m_pModel->GetPlayerPosition() + (m_CurrentPlayerVelocity * T);
 
-	if (m_pModel->IsWithinPlayerRange(3.0f))
+	if (m_pModel->IsWithinPlayerRange(3.0f)) // To stop the enemy moving away from the player as the player gets close
 		Seek(m_pModel->GetPlayerPosition());
 
 	else
@@ -523,6 +575,11 @@ void Entity::Pursue()
 
 }
 
+/***********************
+* Entity evade: AI algorithm where the objects move away from another objects future position
+* Parameters: vec3 position - of what is being evaded
+* Return: void
+********************/
 void Entity::Evade()
 {
 	vec3 Distance = m_pModel->GetPlayerPosition() - m_pModel->GetPosition();
@@ -532,7 +589,7 @@ void Entity::Evade()
 
 	vec3 FuturePosition = m_pModel->GetPlayerPosition() + m_CurrentPlayerVelocity * T;
 
-	if (m_pModel->IsWithinPlayerRange(6.0f))
+	if (m_pModel->IsWithinPlayerRange(6.0f)) // To stop the enemy moving towards the player as the player gets close - as they are moving in the opposite direction
 		Flee(m_pModel->GetPlayerPosition());
 
 	else
@@ -540,6 +597,11 @@ void Entity::Evade()
 
 }
 
+/***********************
+* Entity evade: AI algorithm evade, similar to above instead this is for enemies evading the leader enemy - for when the leader is passing through other enemies
+* Parameters: none
+* Return: void
+********************/
 void Entity::EvadeLeader()
 {
 	vec3 Distance = m_pModel->GetLeaderPosition() - m_pModel->GetPosition();
@@ -552,12 +614,17 @@ void Entity::EvadeLeader()
 	Flee(FuturePosition);
 }
 
+/***********************
+* Entity wander: AI algorithm where objects appear to move randomly around the map in a way that doesn't appear unusual
+* Parameters: none
+* Return: void
+********************/
 void Entity::Wander()
 {
 	float Distance = 1500.0f;
 	float Radius = 7.0f;
 
-	if (m_EntityType == POWERUP)
+	if (m_EntityType == POWERUP) // For power up wandering
 	{
 		float Distance = 3000.0f;
 		float Radius = 0.05f;
@@ -567,8 +634,8 @@ void Entity::Wander()
 
 	vec3 FuturePosition = m_pModel->GetPosition() + m_CurrentVelocity * Distance;
 
-	float AngleDegrees = (rand() % 360) + 1;
-	float AngleRads = AngleDegrees * M_PI / 180;
+	int AngleDegrees = (rand() % 360) + 1;
+	float AngleRads = static_cast<float>(AngleDegrees) * static_cast<float>(M_PI) / 180.0f;
 
 	TargetPosition.x = FuturePosition.x + (Radius * cos(AngleRads));
 	TargetPosition.z = FuturePosition.z + (Radius * sin(AngleRads));
@@ -579,8 +646,14 @@ void Entity::Wander()
 		ReverseCurrentVelocity();
 }
 
+/***********************
+* Entity leader following: AI algorithm where the enemies seek the enemy leader's position, after subtracting a distance, and the enemy leader seeks the player
+* Parameters: none
+* Return: void
+********************/
 void Entity::LeaderFollowing()
 {
+	// If the leader is dead
 	if (m_bLeaderDead)
 	{
 		if (m_bActive)
@@ -592,14 +665,14 @@ void Entity::LeaderFollowing()
 	
 	if (m_pModel->IsLeader())
 	{
-		Seek(m_pModel->GetPlayerPosition());  // Leader follows player
+		Seek(m_pModel->GetPlayerPosition());  // Leader seeks player
 	}
 
 	else
 	{
 		if (m_pModel->IsWithinFlockingDistance(4.0f))
 		{
-			EvadeLeader();
+			EvadeLeader();  // If enemies are too close to the leader, evade to let them through
 		}
 
 		else
@@ -612,6 +685,11 @@ void Entity::LeaderFollowing()
 	}
 }
 
+/***********************
+* Entity flocking: AI algorithm where the objects form a group and wander the map together
+* Parameters: none
+* Return: void
+********************/
 void Entity::Flocking()
 {
 	if (m_bLeaderDead)
@@ -633,7 +711,7 @@ void Entity::Flocking()
 	{
 		if (m_pModel->IsWithinFlockingDistance(2.0f))
 		{
-			EvadeLeader();
+			EvadeLeader(); // If too close, evade
 		}
 		
 		else if (m_pModel->IsWithinFlockingDistance(2.5f))
@@ -644,7 +722,7 @@ void Entity::Flocking()
 
 		else 
 		{
-			Seek(m_pModel->GetLeaderPosition());
+			Seek(m_pModel->GetLeaderPosition());  // If too far away, seek
 		}
 	}	
 }
