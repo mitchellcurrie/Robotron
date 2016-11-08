@@ -31,6 +31,27 @@
     <ClCompile Include="global.cpp">
       <Filter>Other</Filter>
     </ClCompile>
+    <ClCompile Include="client.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="consoletools.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="inputlinebuffer.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="network.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="server.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="socket.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkingMain.cpp">
+      <Filter>Networking</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ShaderLoader.h">
@@ -60,6 +81,30 @@
     <ClInclude Include="global.h">
       <Filter>Other</Filter>
     </ClInclude>
+    <ClInclude Include="client.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="consoletools.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="InputLineBuffer.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="network.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="networkentity.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="server.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="socket.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="WorkQueue.h">
+      <Filter>Networking</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Text.vs">
@@ -84,6 +129,9 @@
     </Filter>
     <Filter Include="Main stuff">
       <UniqueIdentifier>{5620aff6-5737-4385-8b17-48b49c0968c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Networking">
+      <UniqueIdentifier>{c0c63bc2-6ea5-4b20-bf59-e8e459714a85}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

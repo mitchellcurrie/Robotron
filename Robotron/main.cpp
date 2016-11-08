@@ -15,6 +15,10 @@
 
 #include <iostream>
 #include <vector>
+#include <Windows.h>
+#include <cassert>
+#include <thread>
+#include <ctime>
 
 #include "glew.h"
 #include "freeglut.h"
@@ -25,6 +29,13 @@
 #include "gameScene.h"
 #include "ShaderLoader.h"
 
+#include "consoletools.h"
+#include "network.h"
+#include "client.h"
+#include "server.h"
+#include "InputLineBuffer.h"
+#include <functional>
+
 #include <ft2build.h>
 
 // #include "FMOD\fmod.hpp"
@@ -34,6 +45,8 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "global.h"
+
+#pragma comment(lib,"ws2_32.lib")
 
 static int windowID;
 

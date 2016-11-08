@@ -15,6 +15,26 @@
 
 #define MAP_SIZE 17.0f
 
+#define VALIDATE(a) if (!a) return (false)
+
+#include <strstream>
+#include "glew.h"
+#include "freeglut.h"
+
+#include <ft2build.h>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+template<typename T>
+std::string ToString(const T& _value)
+{
+	std::strstream theStream;
+	theStream << _value << std::ends;
+	return (theStream.str());
+}
+
 struct Position
 {
 	// Not required
@@ -41,7 +61,7 @@ enum GameState
 	PLAY,
 	CREDITS,
 	GAME_OVER,
-	QUIT
+	GAME_QUIT
 };
 
 enum ModelType
@@ -88,7 +108,7 @@ enum AIBehaviour
 	EVADE,
 	WANDER,
 	LEADERFOLLOW,
-	FLOCK,
+	FLOCK
 };
 
 enum PowerUpType
@@ -115,3 +135,5 @@ public:
 	static int m_sizeVertices;
 	static int m_sizeIndices;
 };
+
+
