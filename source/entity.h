@@ -107,7 +107,7 @@ public:
 	void SetAsPlayer();	
 	void SetToDead();
 	void SetLeaderDead();
-	void SetActivity(bool _activity);
+	void SetActive(bool _activity);
 	void SetModelPosition(vec3 _position);
 
 //	void SetBulletFired(bool _b);

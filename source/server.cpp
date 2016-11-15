@@ -89,28 +89,24 @@ bool CServer::AddClient(TClientDetails _clientDetails) {
 		_packet.Serialize(HANDSHAKE, "Server", "P1");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P1", _clientDetails));
 		m_sNewestClientName = "P1";
-		//std::cout << "Received a handshake message " << "from " << "P1" << std::endl;
 	}
 
 	else if (m_iNumberOfConnectedPlayers == 1) {
 		_packet.Serialize(HANDSHAKE, "Server", "P2");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P2", _clientDetails));
 		m_sNewestClientName = "P2";
-		//std::cout << "Received a handshake message " << "from " << "P2" << std::endl;
 	}
 
 	else if (m_iNumberOfConnectedPlayers == 2) {
 		_packet.Serialize(HANDSHAKE, "Server", "P3");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P3", _clientDetails));
 		m_sNewestClientName = "P3";
-		//std::cout << "Received a handshake message " << "from " << "P3" << std::endl;
 	}
 
 	else if (m_iNumberOfConnectedPlayers == 3) {
 		_packet.Serialize(HANDSHAKE, "Server", "P4");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P4", _clientDetails));
 		m_sNewestClientName = "P4";
-		//std::cout << "Received a handshake message " << "from " << "P4" << std::endl;
 	}
 
 	else {
@@ -154,7 +150,7 @@ bool CServer::SendDataTo(char* _pcDataToSend, sockaddr_in Address) {
 
 	int _iBytesToSend = (int)strlen(_pcDataToSend) + 1;
 
-	char _RemoteIP[MAX_ADDRESS_LENGTH];
+	//char _RemoteIP[MAX_ADDRESS_LENGTH];
 	char _message[MAX_MESSAGE_LENGTH];
 
 	strcpy_s(_message, strlen(_pcDataToSend) + 1, _pcDataToSend);
@@ -271,13 +267,10 @@ void CServer::ReceiveData(char* _pcBufferToReceiveData) {
 		else {
 			_iPacketSize = strlen(m_pcPacketData) + 1;
 			strcpy_s(_pcBufferToReceiveData, _iPacketSize, m_pcPacketData);
-			//char _IPAddress[100];
-			//inet_ntop(AF_INET, &m_ClientAddress, _IPAddress, sizeof(_IPAddress));
-
-			m_pWorkQueue->push(_pcBufferToReceiveData); // Here or at start of else statement?
+			m_pWorkQueue->push(_pcBufferToReceiveData);
 		}
 
-		std::this_thread::yield(); // Need this?
+		std::this_thread::yield();
 
 	}
 
@@ -291,10 +284,6 @@ void CServer::GetRemoteIPAddress(char *_pcSendersIP) {
 	strcpy_s(_pcSendersIP, _iAddressLength, _temp);
 }
 
-unsigned short CServer::GetRemotePort() {
-	return ntohs(m_ClientAddress.sin_port);
-}
-
 void CServer::ProcessData(char* _pcDataReceived) {
 
 	TPacket _packetRecvd, _packetSent;
@@ -305,13 +294,13 @@ void CServer::ProcessData(char* _pcDataReceived) {
 	ClientDetails.m_ClientAddress = m_ClientAddress;
 	ClientDetails.m_strName = _packetRecvd.Name;
 
-	char IP[MAX_ADDRESS_LENGTH];
-	GetRemoteIPAddress(IP);
-
 	switch (_packetRecvd.MessageType) {
 
 		case HANDSHAKE:
 		{
+
+			char IP[MAX_ADDRESS_LENGTH];
+			GetRemoteIPAddress(IP);
 
 			SetColor(YELLOW);
 			std::cout << ">> HANDSHAKE request received from " << IP << ":" << GetRemotePort() << std::endl;
@@ -328,13 +317,12 @@ void CServer::ProcessData(char* _pcDataReceived) {
 				std::cout << "<< HANDSHAKE successful - User " << m_sNewestClientName << " has joined the room." << std::endl;
 			}
 
+			SetColor(GRAY);
 			break;
 
 		}
 		case DATA:
 		{
-			SetColor(GRAY);
-			//std::cout << _packetRecvd.Name << ": " << std::endl;
 			_packetSent.Serialize(DATA, _packetRecvd.Name, _packetRecvd.MessageContent);
 			SendDataToAll(_packetSent.PacketData);
 			break;
@@ -342,14 +330,10 @@ void CServer::ProcessData(char* _pcDataReceived) {
 		case POSITION:
 		{
 			_packetRecvd = _packetRecvd.DeserializePosition(_pcDataReceived);
-			SetColor(GRAY);
-			std::cout << _packetRecvd.Name
-				<< " - pos(" << _packetRecvd.Position.x << ", " << _packetRecvd.Position.y << ", " << _packetRecvd.Position.z << ")"
-				<< std::endl;
 
 			if (ClientDetails.m_strName == "P1")
 				m_pPlayer1->GetModel()->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
-				
+
 			if (ClientDetails.m_strName == "P2")
 				m_pPlayer2->GetModel()->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
 
@@ -360,7 +344,7 @@ void CServer::ProcessData(char* _pcDataReceived) {
 				m_pPlayer4->GetModel()->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
 
 			_packetSent.SerializePosition(POSITION, _packetRecvd.Name, _packetRecvd.MessageContent, _packetRecvd.Position);
-			SendToAllExcept(ClientDetails,_packetSent.PacketData);
+			SendToAllExcept(ClientDetails, _packetSent.PacketData);
 
 			// Need to move this somewhere else after collisions added
 			/*_packetSent.SerializePosition(POSITION, _packetRecvd.Name, _packetRecvd.MessageContent, _packetRecvd.Position);
@@ -407,10 +391,14 @@ void CServer::ProcessData(char* _pcDataReceived) {
 
 		case BROADCAST:
 		{
+			char IP[MAX_ADDRESS_LENGTH];
+			GetRemoteIPAddress(IP);
+
 			SetColor(TEAL);
 			std::cout << ">> BROADCAST request received from " << IP << ":" << GetRemotePort() << std::endl;
-			_packetSent.Serialize(BROADCAST, _packetRecvd.Name, "I'm here!");	
+			_packetSent.Serialize(BROADCAST, _packetRecvd.Name, "I'm here!");
 			SendData(_packetSent.PacketData);
+			SetColor(GRAY);
 			break;
 		}
 		case QUIT:
@@ -432,6 +420,8 @@ void CServer::ProcessData(char* _pcDataReceived) {
 
 			SendDataToAll(CharMessage);
 
+			SetColor(GRAY);
+
 			break;
 		}
 		default:
@@ -439,8 +429,10 @@ void CServer::ProcessData(char* _pcDataReceived) {
 
 	}
 
-	SetColor(GRAY);
+}
 
+unsigned short CServer::GetRemotePort() {
+	return ntohs(m_ClientAddress.sin_port);
 }
 
 void CServer::GetPacketData(char* _pcLocalBuffer) {

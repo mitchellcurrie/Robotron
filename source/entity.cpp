@@ -172,7 +172,6 @@ void Entity::SetPositions(float _fDeltaTick) {
 		// Forward left Movement
 		if (((keyState[(unsigned char)'a'] == BUTTON_DOWN) || (keyState[(unsigned char)'A'] == BUTTON_DOWN)) &&
 			((keyState[(unsigned char)'w'] == BUTTON_DOWN) || (keyState[(unsigned char)'W'] == BUTTON_DOWN))) {
-			printf("Move cube forward left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
@@ -180,7 +179,6 @@ void Entity::SetPositions(float _fDeltaTick) {
 		// Forward right Movement
 		else if (((keyState[(unsigned char)'d'] == BUTTON_DOWN) || (keyState[(unsigned char)'D'] == BUTTON_DOWN)) &&
 				 ((keyState[(unsigned char)'w'] == BUTTON_DOWN) || (keyState[(unsigned char)'W'] == BUTTON_DOWN))) {
-			printf("Move cube forward right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, -fSpeed) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
@@ -188,7 +186,6 @@ void Entity::SetPositions(float _fDeltaTick) {
 		// Backward left Movement
 		else if (((keyState[(unsigned char)'a'] == BUTTON_DOWN) || (keyState[(unsigned char)'A'] == BUTTON_DOWN)) &&
 				 ((keyState[(unsigned char)'s'] == BUTTON_DOWN) || (keyState[(unsigned char)'S'] == BUTTON_DOWN))) {
-			printf("Move cube backward left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, fSpeed) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
@@ -196,35 +193,30 @@ void Entity::SetPositions(float _fDeltaTick) {
 		// Backward right Movement
 		else if (((keyState[(unsigned char)'d'] == BUTTON_DOWN) || (keyState[(unsigned char)'D'] == BUTTON_DOWN)) &&
 				 ((keyState[(unsigned char)'s'] == BUTTON_DOWN) || (keyState[(unsigned char)'S'] == BUTTON_DOWN))) {
-			printf("Move cube backward right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, fSpeed) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Left Movement
 		else if ((keyState[(unsigned char)'a'] == BUTTON_DOWN) || (keyState[(unsigned char)'A'] == BUTTON_DOWN)) {
-			printf("Move cube left \n");
 			m_CurrentVelocity = glm::vec3(-fSpeed, 0.0f, 0.0f) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Right movement
 		else if ((keyState[(unsigned char)'d'] == BUTTON_DOWN) || (keyState[(unsigned char)'D'] == BUTTON_DOWN)) {
-			printf("Move cube right \n");
 			m_CurrentVelocity = glm::vec3(fSpeed, 0.0f, 0.0f) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Forward movement
 		else if ((keyState[(unsigned char)'w'] == BUTTON_DOWN) || (keyState[(unsigned char)'W'] == BUTTON_DOWN)) {
-			printf("Move cube forward \n");
 			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, -fSpeed) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
 
 		// Back movement
 		else if ((keyState[(unsigned char)'s'] == BUTTON_DOWN) || (keyState[(unsigned char)'S'] == BUTTON_DOWN)) {
-			printf("Move cube back \n");
 			m_CurrentVelocity = glm::vec3(0.0f, 0.0f, fSpeed) * _fDeltaTick;
 			m_pModel->SetLastPlayerVelocity(m_CurrentVelocity);
 		}
@@ -244,7 +236,6 @@ void Entity::SetPositions(float _fDeltaTick) {
 				m_P1duration = (std::clock() - m_P1start) / (double)CLOCKS_PER_SEC;
 
 				if (m_P1duration > m_fFireRate) {
-					printf("Fire \n");
 					m_bP1BulletFired = true;
 					m_P1start = std::clock();
 				}
@@ -254,7 +245,6 @@ void Entity::SetPositions(float _fDeltaTick) {
 				m_P2duration = (std::clock() - m_P2start) / (double)CLOCKS_PER_SEC;
 
 				if (m_P2duration > m_fFireRate) {
-					printf("Fire \n");
 					m_bP2BulletFired = true;
 					m_P2start = std::clock();
 				}
@@ -264,7 +254,6 @@ void Entity::SetPositions(float _fDeltaTick) {
 				m_P3duration = (std::clock() - m_P3start) / (double)CLOCKS_PER_SEC;
 
 				if (m_P3duration > m_fFireRate) {
-					printf("Fire \n");
 					m_bP3BulletFired = true;
 					m_P3start = std::clock();
 				}
@@ -274,7 +263,6 @@ void Entity::SetPositions(float _fDeltaTick) {
 				m_P4duration = (std::clock() - m_P4start) / (double)CLOCKS_PER_SEC;
 
 				if (m_P4duration > m_fFireRate) {
-					printf("Fire \n");
 					m_bP4BulletFired = true;
 					m_P4start = std::clock();
 				}
@@ -889,7 +877,7 @@ bool Entity::IsActive() {
 	return m_bActive;
 }
 
-void Entity::SetActivity(bool _activity) {
+void Entity::SetActive(bool _activity) {
 	m_bActive = _activity;
 
 	if (!_activity)

@@ -75,7 +75,6 @@ GameScene::GameScene() :
 	m_pPlayer2 = nullptr;
 	m_pPlayer3 = nullptr;
 	m_pPlayer4 = nullptr;
-	//	m_pPlayer = nullptr;
 	m_pEnemy = nullptr;
 	m_pMap = nullptr;
 	m_pTextLabel = nullptr;
@@ -537,27 +536,27 @@ void GameScene::SetAllBulletsInactive() {
 	//	//(*it)->ResetVelocityForBullets();		
 	//}
 	for (auto it = m_player1Bullets.begin(); it != m_player1Bullets.end(); it++) {
-		(*it)->SetActivity(false);
+		(*it)->SetActive(false);
 		//(*it)->ResetVelocityForBullets();		
 	}
 
 	for (auto it = m_player2Bullets.begin(); it != m_player2Bullets.end(); it++) {
-		(*it)->SetActivity(false);
+		(*it)->SetActive(false);
 		//(*it)->ResetVelocityForBullets();		
 	}
 
 	for (auto it = m_player3Bullets.begin(); it != m_player3Bullets.end(); it++) {
-		(*it)->SetActivity(false);
+		(*it)->SetActive(false);
 		//(*it)->ResetVelocityForBullets();		
 	}
 
 	for (auto it = m_player4Bullets.begin(); it != m_player4Bullets.end(); it++) {
-		(*it)->SetActivity(false);
+		(*it)->SetActive(false);
 		//(*it)->ResetVelocityForBullets();		
 	}
 
 	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++) {
-		(*it)->SetActivity(false);
+		(*it)->SetActive(false);
 		//(*it)->ResetVelocityForBullets();		
 	}
 }
@@ -577,10 +576,6 @@ void GameScene::AddPlayer(Entity* _entity) {
 void GameScene::AddEnemy(Entity* _entity) {
 	m_enemies.push_back(_entity);
 }
-
-//void GameScene::AddPlayerBullet(Entity* _entity) {
-//	m_playerBullets.push_back(_entity);
-//}
 
 void GameScene::AddPlayer1Bullet(Entity* _entity) {
 	m_player1Bullets.push_back(_entity);
@@ -756,7 +751,7 @@ void GameScene::UpdateEntities() {
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
 		(*it)->GetModel()->ResetToStartingPosition();
 		(*it)->GetModel()->ResetToBeDeleted();
-		(*it)->SetActivity(false);
+		(*it)->SetActive(false);
 		(*it)->SetLeader(false);
 		(*it)->SetModelOutsideMap(false);
 		(*it)->SetMaxVelocity(0.05f);
@@ -768,7 +763,7 @@ void GameScene::UpdateEntities() {
 	// Reset powerups and set to inactive.
 	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++) {
 		(*it)->GetModel()->ResetToBeDeleted();
-		(*it)->SetActivity(false);
+		(*it)->SetActive(false);
 	}
 
 	//Reset enemy counter
@@ -783,7 +778,7 @@ void GameScene::UpdateEntities() {
 		for (int x{ 0 }; x < 7; x++) // Number of enemies
 		{
 			m_enemies.at(x)->SetAIBehaviour(FLEE);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
@@ -791,7 +786,7 @@ void GameScene::UpdateEntities() {
 	else if (m_iCurrentLevel == 2) {
 		for (int x{ 0 }; x < 7; x++) {
 			m_enemies.at(x)->SetAIBehaviour(EVADE);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
@@ -799,7 +794,7 @@ void GameScene::UpdateEntities() {
 	else if (m_iCurrentLevel == 3) {
 		for (int x{ 0 }; x < 8; x++) {
 			m_enemies.at(x)->SetAIBehaviour(WANDER);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
@@ -807,7 +802,7 @@ void GameScene::UpdateEntities() {
 	else if (m_iCurrentLevel == 4) {
 		for (int x{ 0 }; x < 6; x++) {
 			m_enemies.at(x)->SetAIBehaviour(SEEK);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
@@ -815,7 +810,7 @@ void GameScene::UpdateEntities() {
 	else if (m_iCurrentLevel == 5) {
 		for (int x{ 0 }; x < 8; x++) {
 			m_enemies.at(x)->SetAIBehaviour(LEADERFOLLOW);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
@@ -823,7 +818,7 @@ void GameScene::UpdateEntities() {
 	else if (m_iCurrentLevel == 6) {
 		for (int x{ 0 }; x < 8; x++) {
 			m_enemies.at(x)->SetAIBehaviour(FLOCK);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
@@ -831,7 +826,7 @@ void GameScene::UpdateEntities() {
 	else if (m_iCurrentLevel == 7) {
 		for (int x{ 0 }; x < 6; x++) {
 			m_enemies.at(x)->SetAIBehaviour(PURSUE);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
@@ -844,28 +839,28 @@ void GameScene::UpdateEntities() {
 
 		for (int x{ 0 }; x < 2; x++) {
 			m_enemies.at(x)->SetAIBehaviour(SEEK);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
 			Entity::IncrementEnemyCounter();
 		}
 
 		for (int x{ 2 }; x < 4; x++) {
 			m_enemies.at(x)->SetAIBehaviour(PURSUE);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
 			Entity::IncrementEnemyCounter();
 		}
 
 		for (int x{ 4 }; x < 11; x++) {
 			m_enemies.at(x)->SetAIBehaviour(WANDER);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
 			Entity::IncrementEnemyCounter();
 		}
 
 		for (int x{ 11 }; x < 15; x++) {
 			m_enemies.at(x)->SetAIBehaviour(FLOCK);
-			m_enemies.at(x)->SetActivity(true);
+			m_enemies.at(x)->SetActive(true);
 			m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
 			Entity::IncrementEnemyCounter();
 		}
@@ -887,7 +882,7 @@ void GameScene::CheckBullets() {
 
 		if (Entity::IsP1BulletFired()) {
 
-			m_player1Bullets.at(Entity::GetPlayer1BulletCounter())->SetActivity(true); // set next bullet in vector to active
+			m_player1Bullets.at(Entity::GetPlayer1BulletCounter())->SetActive(true); // set next bullet in vector to active
 			m_player1Bullets.at(Entity::GetPlayer1BulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
 			m_player1Bullets.at(Entity::GetPlayer1BulletCounter())->SetModelPosition(m_pPlayer1->GetModel()->GetPosition()); // Set position to players current position
 
@@ -901,7 +896,7 @@ void GameScene::CheckBullets() {
 
 			if ((*it)->ToDelete()) {
 
-				(*it)->SetActivity(false); // set to inactive
+				(*it)->SetActive(false); // set to inactive
 				(*it)->ResetVelocityForPlayerBullets(); // reset velocity
 
 			}
@@ -913,7 +908,7 @@ void GameScene::CheckBullets() {
 	if ((m_pPlayer2->IsActive()))// && !(m_pPlayer2->IsPlayerDead()))
 	{
 		if (Entity::IsP2BulletFired()) {
-			m_player2Bullets.at(Entity::GetPlayer2BulletCounter())->SetActivity(true); // set next bullet in vector to active
+			m_player2Bullets.at(Entity::GetPlayer2BulletCounter())->SetActive(true); // set next bullet in vector to active
 			m_player2Bullets.at(Entity::GetPlayer2BulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
 			m_player2Bullets.at(Entity::GetPlayer2BulletCounter())->SetModelPosition(m_pPlayer2->GetModel()->GetPosition()); // Set position to players current position
 
@@ -924,7 +919,7 @@ void GameScene::CheckBullets() {
 		// Check if any bullets need to be deleted - either through collision with object or edge of map
 		for (auto it = m_player2Bullets.begin(); it != m_player2Bullets.end(); it++) {
 			if ((*it)->ToDelete()) {
-				(*it)->SetActivity(false); // set to inactive
+				(*it)->SetActive(false); // set to inactive
 				(*it)->ResetVelocityForPlayerBullets(); // reset velocity
 			}
 		}
@@ -933,7 +928,7 @@ void GameScene::CheckBullets() {
 	if ((m_pPlayer3->IsActive()))// && !(m_pPlayer3->IsPlayerDead()))
 	{
 		if (Entity::IsP3BulletFired()) {
-			m_player3Bullets.at(Entity::GetPlayer3BulletCounter())->SetActivity(true); // set next bullet in vector to active
+			m_player3Bullets.at(Entity::GetPlayer3BulletCounter())->SetActive(true); // set next bullet in vector to active
 			m_player3Bullets.at(Entity::GetPlayer3BulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
 			m_player3Bullets.at(Entity::GetPlayer3BulletCounter())->SetModelPosition(m_pPlayer3->GetModel()->GetPosition()); // Set position to players current position
 
@@ -944,7 +939,7 @@ void GameScene::CheckBullets() {
 		// Check if any bullets need to be deleted - either through collision with object or edge of map
 		for (auto it = m_player3Bullets.begin(); it != m_player3Bullets.end(); it++) {
 			if ((*it)->ToDelete()) {
-				(*it)->SetActivity(false); // set to inactive
+				(*it)->SetActive(false); // set to inactive
 				(*it)->ResetVelocityForPlayerBullets(); // reset velocity
 			}
 		}
@@ -953,7 +948,7 @@ void GameScene::CheckBullets() {
 	if ((m_pPlayer4->IsActive()))// && !(m_pPlayer4->IsPlayerDead()))
 	{
 		if (Entity::IsP4BulletFired()) {
-			m_player4Bullets.at(Entity::GetPlayer4BulletCounter())->SetActivity(true); // set next bullet in vector to active
+			m_player4Bullets.at(Entity::GetPlayer4BulletCounter())->SetActive(true); // set next bullet in vector to active
 			m_player4Bullets.at(Entity::GetPlayer4BulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
 			m_player4Bullets.at(Entity::GetPlayer4BulletCounter())->SetModelPosition(m_pPlayer4->GetModel()->GetPosition()); // Set position to players current position
 
@@ -964,7 +959,7 @@ void GameScene::CheckBullets() {
 		// Check if any bullets need to be deleted - either through collision with object or edge of map
 		for (auto it = m_player4Bullets.begin(); it != m_player4Bullets.end(); it++) {
 			if ((*it)->ToDelete()) {
-				(*it)->SetActivity(false); // set to inactive
+				(*it)->SetActive(false); // set to inactive
 				(*it)->ResetVelocityForPlayerBullets(); // reset velocity
 			}
 		}
@@ -977,7 +972,7 @@ void GameScene::CheckBullets() {
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
 		if ((rand() % 130 == 1) && (*it)->IsActive() && (!(*it)->GetModel()->IsOutsideMap())) // 1/130 chance of firing
 		{
-			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->SetActivity(true); // set next bullet in vector to active
+			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->SetActive(true); // set next bullet in vector to active
 			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
 			m_enemyBullets.at(Entity::GetEnemyBulletCounter())->SetModelPosition((*it)->GetModel()->GetPosition()); // Set position to enemies current position
 			Entity::IncrementEnemyBulletCounter();
@@ -987,7 +982,7 @@ void GameScene::CheckBullets() {
 	// Check if any bullets need to be deleted - either through collision with object or edge of map 
 	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++) {
 		if ((*it)->ToDelete()) {
-			(*it)->SetActivity(false); // set to inactive
+			(*it)->SetActive(false); // set to inactive
 			(*it)->VelocityToZero(); // reset velocity
 		}
 	}
@@ -1019,7 +1014,7 @@ void GameScene::CheckEnemies() {
 				iRandom2 = GetRandomPosition();
 			}
 
-			m_enemies.at(Entity::GetEnemyCounter())->SetActivity(true); // set next bullet in vector to active
+			m_enemies.at(Entity::GetEnemyCounter())->SetActive(true); // set next bullet in vector to active
 			m_enemies.at(Entity::GetEnemyCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
 			m_enemies.at(Entity::GetEnemyCounter())->SetModelPosition(vec3(iRandom1, 0.0f, iRandom2)); // Set position
 			m_enemies.at(Entity::GetEnemyCounter())->SetMaxVelocity(fMaxVelocity);
@@ -1035,7 +1030,7 @@ void GameScene::CheckEnemies() {
 	// Check if any enemies need to be deleted - either through collision with bullet or player
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
 		if ((*it)->ToDelete()) {
-			(*it)->SetActivity(false); // set to inactive
+			(*it)->SetActive(false); // set to inactive
 		}
 	}
 }
@@ -1066,7 +1061,7 @@ void GameScene::CheckPowerUps() {
 			i = rand() % 3;
 		}
 
-		m_powerUps.at(i)->SetActivity(true); // set random power up to active
+		m_powerUps.at(i)->SetActive(true); // set random power up to active
 		m_powerUps.at(i)->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
 		m_powerUps.at(i)->SetModelPosition(GetRandomMapPosition()); // Set position		
 	}
@@ -1074,7 +1069,7 @@ void GameScene::CheckPowerUps() {
 	// Check if any powerups need to be deleted - either through collision with bullet or player
 	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++) {
 		if ((*it)->ToDelete()) {
-			(*it)->SetActivity(false); // set to inactive
+			(*it)->SetActive(false); // set to inactive
 		}
 	}
 
@@ -1469,7 +1464,6 @@ void GameScene::AddExtraLife() {
 #pragma endregion LEVELS
 
 #pragma region SCORE
-
 void GameScene::AddToScore(int _Score) {
 	m_iScore += _Score;
 	m_iScoreCounter += _Score;
@@ -1715,18 +1709,18 @@ void GameScene::Update() {
 				usernameC = _strdup(username.c_str());
 
 				if (name == " P1") {
-					m_players[0]->SetActivity(true);
+					m_players[0]->SetActive(true);
 				}
 				else if (name == " P2") {
-					m_players[1]->SetActivity(true);
+					m_players[1]->SetActive(true);
 
 				}
 				else if (name == " P3") {
-					m_players[2]->SetActivity(true);
+					m_players[2]->SetActive(true);
 
 				}
 				else if (name == " P4") {
-					m_players[3]->SetActivity(true);
+					m_players[3]->SetActive(true);
 
 				}
 
@@ -1830,21 +1824,22 @@ void GameScene::UpdateClient() {
 
 	// Checking which players are active
 	if (m_pClient->IsActive("P1")) {
-		m_pPlayer1->SetActivity(true);
+		m_pPlayer1->SetActive(true);
 	}
 	if (m_pClient->IsActive("P2")) {
-		m_pPlayer2->SetActivity(true);
+		m_pPlayer2->SetActive(true);
 	}
 	if (m_pClient->IsActive("P3")) {
-		m_pPlayer3->SetActivity(true);
+		m_pPlayer3->SetActive(true);
 	}
 	if (m_pClient->IsActive("P4")) {
-		m_pPlayer4->SetActivity(true);
+		m_pPlayer4->SetActive(true);
 	}
 
 	// Setting the clients position and sending to the server
 
 	if (username == " P1") {
+
 		m_pPlayer1->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer2->IsActive())
@@ -1853,9 +1848,11 @@ void GameScene::UpdateClient() {
 			m_pPlayer3->GetModel()->SetPosition(m_pClient->GetPosition("P3"));
 		if (m_pPlayer4->IsActive())
 			m_pPlayer4->GetModel()->SetPosition(m_pClient->GetPosition("P4"));
+
 		m_packet.SerializePosition(POSITION, usernameC, "-", m_pPlayer1->GetModel()->GetPosition());
 	}
 	if (username == " P2") {
+
 		m_pPlayer2->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer1->IsActive())
@@ -1864,9 +1861,11 @@ void GameScene::UpdateClient() {
 			m_pPlayer3->GetModel()->SetPosition(m_pClient->GetPosition("P3"));
 		if (m_pPlayer4->IsActive())
 			m_pPlayer4->GetModel()->SetPosition(m_pClient->GetPosition("P4"));
+
 		m_packet.SerializePosition(POSITION, usernameC, "-", m_pPlayer2->GetModel()->GetPosition());
 	}
 	if (username == " P3") {
+
 		m_pPlayer3->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer1->IsActive())
@@ -1875,9 +1874,11 @@ void GameScene::UpdateClient() {
 			m_pPlayer2->GetModel()->SetPosition(m_pClient->GetPosition("P2"));
 		if (m_pPlayer4->IsActive())
 			m_pPlayer4->GetModel()->SetPosition(m_pClient->GetPosition("P4"));
+
 		m_packet.SerializePosition(POSITION, usernameC, "-", m_pPlayer3->GetModel()->GetPosition());
 	}
 	if (username == " P4") {
+
 		m_pPlayer4->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer1->IsActive())
@@ -1886,11 +1887,11 @@ void GameScene::UpdateClient() {
 			m_pPlayer3->GetModel()->SetPosition(m_pClient->GetPosition("P3"));
 		if (m_pPlayer2->IsActive())
 			m_pPlayer2->GetModel()->SetPosition(m_pClient->GetPosition("P2"));
+
 		m_packet.SerializePosition(POSITION, usernameC, "-", m_pPlayer4->GetModel()->GetPosition());
 	}
 
 	m_pClient->SendData(m_packet.PacketData);
-
 
 }
 
@@ -1898,16 +1899,8 @@ void GameScene::UpdateClient() {
 
 #pragma region KEYBOARD
 void GameScene::KeyDown(unsigned char key, int x, int y) {
-	keyState[key] = BUTTON_DOWN;
 
-	if (m_eNetworkEntityType == CLIENT && m_iGameState == PLAY) {
-		TPacket packet;
-		std::string msg;
-		char c = key;
-		msg.insert(msg.begin(), c);
-		packet.Serialize(DATA, m_pClient->GetName(), _strdup(msg.c_str()));
-		m_pClient->SendData(packet.PacketData);
-	}
+	keyState[key] = BUTTON_DOWN;
 
 }
 

@@ -2,135 +2,133 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="ShaderLoader.cpp">
-      <Filter>Shaders</Filter>
+      <Filter>shaders</Filter>
     </ClCompile>
     <ClCompile Include="utils.cpp">
-      <Filter>Other</Filter>
-    </ClCompile>
-    <ClCompile Include="clock.cpp">
-      <Filter>Other</Filter>
-    </ClCompile>
-    <ClCompile Include="camera.cpp">
-      <Filter>Other</Filter>
+      <Filter>misc</Filter>
     </ClCompile>
     <ClCompile Include="model.cpp">
-      <Filter>Main stuff</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Main stuff</Filter>
+      <Filter>entities</Filter>
     </ClCompile>
     <ClCompile Include="gameScene.cpp">
-      <Filter>Main stuff</Filter>
+      <Filter>entities</Filter>
     </ClCompile>
     <ClCompile Include="entity.cpp">
-      <Filter>Main stuff</Filter>
-    </ClCompile>
-    <ClCompile Include="TextLabel.cpp">
-      <Filter>Other</Filter>
+      <Filter>entities</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp">
-      <Filter>Other</Filter>
+      <Filter>misc</Filter>
     </ClCompile>
     <ClCompile Include="client.cpp">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClCompile>
     <ClCompile Include="consoletools.cpp">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClCompile>
     <ClCompile Include="inputlinebuffer.cpp">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClCompile>
     <ClCompile Include="network.cpp">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClCompile>
     <ClCompile Include="server.cpp">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClCompile>
     <ClCompile Include="socket.cpp">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClCompile>
     <ClCompile Include="NetworkingMain.cpp">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>entities</Filter>
+    </ClCompile>
+    <ClCompile Include="TextLabel.cpp">
+      <Filter>entities</Filter>
+    </ClCompile>
+    <ClCompile Include="clock.cpp">
+      <Filter>entities</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ShaderLoader.h">
-      <Filter>Shaders</Filter>
+      <Filter>shaders</Filter>
     </ClInclude>
     <ClInclude Include="utils.h">
-      <Filter>Other</Filter>
-    </ClInclude>
-    <ClInclude Include="clock.h">
-      <Filter>Other</Filter>
-    </ClInclude>
-    <ClInclude Include="camera.h">
-      <Filter>Other</Filter>
+      <Filter>misc</Filter>
     </ClInclude>
     <ClInclude Include="model.h">
-      <Filter>Main stuff</Filter>
+      <Filter>entities</Filter>
     </ClInclude>
     <ClInclude Include="gameScene.h">
-      <Filter>Main stuff</Filter>
+      <Filter>entities</Filter>
     </ClInclude>
     <ClInclude Include="entity.h">
-      <Filter>Main stuff</Filter>
-    </ClInclude>
-    <ClInclude Include="TextLabel.h">
-      <Filter>Other</Filter>
+      <Filter>entities</Filter>
     </ClInclude>
     <ClInclude Include="global.h">
-      <Filter>Other</Filter>
+      <Filter>misc</Filter>
     </ClInclude>
     <ClInclude Include="client.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClInclude>
     <ClInclude Include="consoletools.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClInclude>
     <ClInclude Include="InputLineBuffer.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClInclude>
     <ClInclude Include="network.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClInclude>
     <ClInclude Include="networkentity.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClInclude>
     <ClInclude Include="server.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClInclude>
     <ClInclude Include="socket.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
     </ClInclude>
     <ClInclude Include="WorkQueue.h">
-      <Filter>Networking</Filter>
+      <Filter>networking</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>entities</Filter>
+    </ClInclude>
+    <ClInclude Include="TextLabel.h">
+      <Filter>entities</Filter>
+    </ClInclude>
+    <ClInclude Include="clock.h">
+      <Filter>entities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Text.vs">
-      <Filter>Shaders</Filter>
+      <Filter>shaders</Filter>
     </None>
     <None Include="Text.fs">
-      <Filter>Shaders</Filter>
+      <Filter>shaders</Filter>
     </None>
     <None Include="Shape.vs">
-      <Filter>Shaders</Filter>
+      <Filter>shaders</Filter>
     </None>
     <None Include="Shape.fs">
-      <Filter>Shaders</Filter>
+      <Filter>shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{aa1b4a31-49c4-4d41-9b66-375cf9a8d686}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Other">
-      <UniqueIdentifier>{c6814831-1c0b-4d4c-bd59-4b18d8c9f0ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Main stuff">
+    <Filter Include="entities">
       <UniqueIdentifier>{5620aff6-5737-4385-8b17-48b49c0968c8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Networking">
+    <Filter Include="shaders">
+      <UniqueIdentifier>{aa1b4a31-49c4-4d41-9b66-375cf9a8d686}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="misc">
+      <UniqueIdentifier>{c6814831-1c0b-4d4c-bd59-4b18d8c9f0ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="networking">
       <UniqueIdentifier>{c0c63bc2-6ea5-4b20-bf59-e8e459714a85}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

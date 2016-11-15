@@ -60,25 +60,25 @@ CClient::~CClient() {
 * @return: void
 ********************/
 bool CClient::Initialise() {
-	
+
 	m_pPlayer1Pos = new glm::vec3;
 	m_pPlayer2Pos = new glm::vec3;
 	m_pPlayer3Pos = new glm::vec3;
 	m_pPlayer4Pos = new glm::vec3;
-	
+
 	//Local Variables to hold Server's IP address and Port NUmber as entered by the user
 	char _cServerIPAddress[128];
 	ZeroMemory(&_cServerIPAddress, 128);
 	char _cServerPort[10];
 	ZeroMemory(&_cServerPort, 10);
-	unsigned short _usServerPort;
+	//unsigned short _usServerPort;
 
 	char _cServerChosen[5];
 	ZeroMemory(&_cServerChosen, 5);
-	unsigned int _uiServerIndex;
+	//unsigned int _uiServerIndex;
 
 	//Local variable to hold client's name
-	char _cUserName[50];
+	//char _cUserName[50];
 	ZeroMemory(&m_cUserName, 50);
 
 	//Zero out the memory for all the member variables.
@@ -134,7 +134,7 @@ bool CClient::SendData(char* _pcDataToSend) {
 		0,												// flags
 		reinterpret_cast<sockaddr*>(&m_ServerSocketAddress),	// address to be filled with packet target
 		sizeof(m_ServerSocketAddress)							// size of the above address struct.
-		);
+	);
 
 	if (_iBytesToSend != iNumBytes) {
 		std::cout << "There was an error in sending data from client to server" << std::endl;
@@ -161,7 +161,7 @@ bool CClient::SendDataTo(char* _pcDataToSend, sockaddr_in Address) {
 		0,												// flags
 		reinterpret_cast<sockaddr*>(&Address),	// address to be filled with packet target
 		sizeof(Address)							// size of the above address struct.
-		);
+	);
 
 	if (_iBytesToSend != iNumBytes) {
 		std::cout << "There was an error in sending data from client to server" << std::endl;
@@ -170,135 +170,6 @@ bool CClient::SendDataTo(char* _pcDataToSend, sockaddr_in Address) {
 
 	return true;
 
-}
-
-void CClient::ReceiveData(char* _pcBufferToReceiveData) {
-
-	struct timeval timeValue;
-	timeValue.tv_sec = 0;
-	timeValue.tv_usec = 0;
-	setsockopt(m_pClientSocket->GetSocketHandle(), SOL_SOCKET, SO_RCVTIMEO, (char*)&timeValue, sizeof(timeValue));
-
-	sockaddr_in _FromAddress; // Make a local variable to extract the IP and port number of the sender from whom we are receiving
-	//In this case; it should be the details of the server; since the client only ever receives from the server
-
-	int iSizeOfAdd = sizeof(_FromAddress);
-	int _iNumOfBytesReceived;
-	int _iPacketSize;
-
-	//Receive data into a local buffer
-	char _buffer[MAX_MESSAGE_LENGTH];
-	//For debugging purpose only, convert the Address structure to a string.
-	char _pcAddress[50];
-	ZeroMemory(&_pcAddress, 50);
-
-	while (m_bOnline) {
-
-		// pull off the packet(s) using recvfrom()
-		_iNumOfBytesReceived = recvfrom(
-			this->m_pClientSocket->GetSocketHandle(),						// client-end socket being used to read from
-			_buffer,							// incoming packet to be filled
-			MAX_MESSAGE_LENGTH,					   // length of incoming packet to be filled
-			0,										// flags
-			reinterpret_cast<sockaddr*>(&_FromAddress),	// address to be filled with packet source
-			&iSizeOfAdd								// size of the above address struct.
-			);
-
-		inet_ntop(AF_INET, &_FromAddress, _pcAddress, sizeof(_pcAddress));
-
-		if (_iNumOfBytesReceived < 0) {
-			int _iError = WSAGetLastError();
-
-			if (_iError == WSAECONNRESET) {
-
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
-
-				TPacket _packet;
-				_packet.Serialize(DATA, "Error", "Server dropped. Please close the window.");
-				// SendDataTo(_packet.PacketData, m_ServerSocketAddress);
-
-				/*TPacket _packet;
-				_packet.Serialize(QUIT, "Blank", "Blank");
-				Process(_packet.PacketData);*/
-
-				m_pWorkQueue->push(_packet.PacketData);
-
-				//std::cout << "Server dropped. Please close the window." << std::endl;
-				//m_bOnline = false;
-
-				// Instead could send a quit or modified quit message informing the client of the server drop, and quitting them out, without making m_bOnline false
-			}
-			else {
-				//Error in receiving data 
-				std::cout << "recvfrom failed with error " << WSAGetLastError();
-			}
-
-			//_pcBufferToReceiveData = 0;
-			m_pcPacketData = 0;
-		}
-		else if (_iNumOfBytesReceived == 0) {
-			//The remote end has shutdown the connection
-			// _pcBufferToReceiveData = 0;
-			m_pcPacketData = 0;
-		}
-		else {
-
-			m_ServerSocketAddress = _FromAddress;
-			strcpy_s(m_pcPacketData, strlen(_buffer) + 1, _buffer);
-			m_pWorkQueue->push(m_pcPacketData);
-
-		}
-
-		std::this_thread::yield(); //Yield the processor; giving the main a chance to run.
-
-	}
-
-}
-
-bool CClient::IsActive(std::string _player) {
-
-	if (_player == "P1") {
-		if (m_bP1Active)
-			return true;
-		else
-			return false;
-	}
-
-	else if (_player == "P2") {
-		if (m_bP2Active)
-			return true;
-		else
-			return false;
-	}
-
-	if (_player == "P3") {
-		if (m_bP3Active)
-			return true;
-		else
-			return false;
-	}
-
-	if (_player == "P4") {
-		if (m_bP4Active)
-			return true;
-		else
-			return false;
-	}
-}
-
-glm::vec3 CClient::GetPosition(std::string _playerName) {
-
-	if (_playerName == "P1")
-		return *m_pPlayer1Pos;
-
-	if (_playerName == "P2")
-		return *m_pPlayer2Pos;
-
-	if (_playerName == "P3")
-		return *m_pPlayer3Pos;
-
-	if (_playerName == "P4")
-		return *m_pPlayer4Pos;	
 }
 
 void CClient::ReceiveBroadcastMessages(char* _pcBufferToReceiveData) {
@@ -325,7 +196,7 @@ void CClient::ReceiveBroadcastMessages(char* _pcBufferToReceiveData) {
 			0,											// flags
 			reinterpret_cast<sockaddr*>(&_FromAddress),	// address to be filled with packet source
 			&iSizeOfAdd								// size of the above address struct.
-			);
+		);
 
 		if (_iNumOfBytesReceived < 0) {
 			//Error in receiving data 
@@ -378,35 +249,84 @@ bool CClient::BroadcastForServers() {
 	return true;
 }
 
-void CClient::GetRemoteIPAddress(char *_pcSendersIP) {
-	inet_ntop(AF_INET, &(m_ServerSocketAddress.sin_addr), _pcSendersIP, sizeof(_pcSendersIP));
-	return;
-}
+void CClient::ReceiveData(char* _pcBufferToReceiveData) {
 
-unsigned short CClient::GetRemotePort() {
-	return ntohs(m_ServerSocketAddress.sin_port);
-}
+	struct timeval timeValue;
+	timeValue.tv_sec = 0;
+	timeValue.tv_usec = 0;
+	setsockopt(m_pClientSocket->GetSocketHandle(), SOL_SOCKET, SO_RCVTIMEO, (char*)&timeValue, sizeof(timeValue));
 
-void CClient::GetPacketData(char* _pcLocalBuffer) {
-	strcpy_s(_pcLocalBuffer, strlen(m_pcPacketData) + 1, m_pcPacketData);
-}
+	sockaddr_in _FromAddress; // Make a local variable to extract the IP and port number of the sender from whom we are receiving
+							  //In this case; it should be the details of the server; since the client only ever receives from the server
 
-CWorkQueue<char*>* CClient::GetWorkQueue() {
-	return m_pWorkQueue;
-}
+	int iSizeOfAdd = sizeof(_FromAddress);
+	int _iNumOfBytesReceived;
 
-char* CClient::GetName() {
-	return m_cUserName;
+	//Receive data into a local buffer
+	char _buffer[MAX_MESSAGE_LENGTH];
+
+	//For debugging purpose only, convert the Address structure to a string.
+	char _pcAddress[50];
+	ZeroMemory(&_pcAddress, 50);
+
+	while (m_bOnline) {
+
+		// pull off the packet(s) using recvfrom()
+		_iNumOfBytesReceived = recvfrom(
+			this->m_pClientSocket->GetSocketHandle(),						// client-end socket being used to read from
+			_buffer,							// incoming packet to be filled
+			MAX_MESSAGE_LENGTH,					   // length of incoming packet to be filled
+			0,										// flags
+			reinterpret_cast<sockaddr*>(&_FromAddress),	// address to be filled with packet source
+			&iSizeOfAdd								// size of the above address struct.
+		);
+
+		inet_ntop(AF_INET, &_FromAddress, _pcAddress, sizeof(_pcAddress));
+
+		if (_iNumOfBytesReceived < 0) {
+			int _iError = WSAGetLastError();
+
+			if (_iError == WSAECONNRESET) {
+
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
+
+				TPacket _packet;
+				_packet.Serialize(DATA, "Error", "Server dropped. Please close the window.");
+
+				m_pWorkQueue->push(_packet.PacketData);
+
+			}
+			else {
+				//Error in receiving data 
+				std::cout << "recvfrom failed with error " << WSAGetLastError();
+			}
+
+			//_pcBufferToReceiveData = 0;
+			m_pcPacketData = 0;
+		}
+		else if (_iNumOfBytesReceived == 0) {
+			//The remote end has shutdown the connection
+			// _pcBufferToReceiveData = 0;
+			m_pcPacketData = 0;
+		}
+		else {
+
+			m_ServerSocketAddress = _FromAddress;
+			strcpy_s(m_pcPacketData, strlen(_buffer) + 1, _buffer);
+			m_pWorkQueue->push(m_pcPacketData);
+
+		}
+
+		std::this_thread::yield();
+
+	}
+
 }
 
 void CClient::ProcessData(char* _pcDataReceived) {
 
 	TPacket _packetRecvd = _packetRecvd.Deserialize(_pcDataReceived);
 	TPacket _packetSent;
-
-	TClientDetails ClientDetails;
-//	ClientDetails.m_ClientAddress = m_ClientAddress;
-	ClientDetails.m_strName = _packetRecvd.Name;
 
 	switch (_packetRecvd.MessageType) {
 
@@ -425,7 +345,7 @@ void CClient::ProcessData(char* _pcDataReceived) {
 			}
 			else {
 				strcpy_s(m_cUserName, strlen(_packetRecvd.MessageContent) + 1, _packetRecvd.MessageContent);
-				std::cout << "YOU'VE JOINDED THE SERVER" << std::endl;
+				std::cout << "YOU'VE JOINED THE SERVER" << std::endl;
 
 				std::string UserName = m_cUserName;
 
@@ -438,40 +358,38 @@ void CClient::ProcessData(char* _pcDataReceived) {
 				else if (UserName == "P4")
 					m_bP4Active = true;
 			}
-			
 
+			SetColor(GRAY);
 			break;
 		}
 		case DATA:
 		{
 			SetColor(DGREEN);
 			std::cout << "DATA - " << _packetRecvd.Name << ": " << _packetRecvd.MessageContent << std::endl;
+			SetColor(GRAY);
 			break;
 		}
 		case POSITION:
 		{
-			_packetRecvd = _packetRecvd.DeserializePosition(_pcDataReceived);
-			SetColor(DTEAL);
-			std::cout << "POSITION - " << _packetRecvd.Name
-				<< " - pos(" << _packetRecvd.Position.x << ", " << _packetRecvd.Position.y << ", " << _packetRecvd.Position.z << ")"
-				<< std::endl;
 
-			if (ClientDetails.m_strName == "P1") {
+			_packetRecvd = _packetRecvd.DeserializePosition(_pcDataReceived);
+
+			if (strcmp(_packetRecvd.Name, "P1") == 0) {
 				*m_pPlayer1Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
 				m_bP1Active = true;
 			}
-				
-			if (ClientDetails.m_strName == "P2") {
+
+			if (strcmp(_packetRecvd.Name, "P2") == 0) {
 				*m_pPlayer2Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
 				m_bP2Active = true;
 			}
 
-			if (ClientDetails.m_strName == "P3") {
+			if (strcmp(_packetRecvd.Name, "P3") == 0) {
 				*m_pPlayer3Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
 				m_bP3Active = true;
 			}
 
-			if (ClientDetails.m_strName == "P4") {
+			if (strcmp(_packetRecvd.Name, "P4") == 0) {
 				*m_pPlayer4Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
 				m_bP4Active = true;
 			}
@@ -528,13 +446,14 @@ void CClient::ProcessData(char* _pcDataReceived) {
 
 			}
 
+			SetColor(GRAY);
 			break;
 		}
 		case QUIT:
 		{
 			SetColor(RED);
 			std::cout << "QUIT - " << _packetRecvd.Name << ":" << _packetRecvd.MessageContent << std::endl;
-
+			SetColor(GRAY);
 			break;
 		}
 		default:
@@ -542,16 +461,57 @@ void CClient::ProcessData(char* _pcDataReceived) {
 
 	}
 
-	SetColor(GRAY);
-
 }
 
-std::vector<sockaddr_in> CClient::GetPorts() {
-	return m_vecServerAddr;
+bool CClient::IsActive(std::string _player) {
+
+	if (_player == "P1") {
+		if (m_bP1Active)
+			return true;
+		else
+			return false;
+	}
+
+	else if (_player == "P2") {
+		if (m_bP2Active)
+			return true;
+		else
+			return false;
+	}
+
+	if (_player == "P3") {
+		if (m_bP3Active)
+			return true;
+		else
+			return false;
+	}
+
+	if (_player == "P4") {
+		if (m_bP4Active)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
 }
 
-std::vector<std::string> CClient::GetIPAddresses() {
-	return m_cIPAddresses;
+glm::vec3 CClient::GetPosition(std::string _playerName) {
+
+	if (_playerName == "P1")
+		return *m_pPlayer1Pos;
+
+	if (_playerName == "P2")
+		return *m_pPlayer2Pos;
+
+	if (_playerName == "P3")
+		return *m_pPlayer3Pos;
+
+	if (_playerName == "P4")
+		return *m_pPlayer4Pos;
+
+	return (glm::vec3(0));
+
 }
 
 void CClient::ConnectToServer(int _iIndex) {
@@ -572,6 +532,35 @@ void CClient::ConnectToServer(int _iIndex) {
 	_packet.Serialize(HANDSHAKE, m_cUserName, m_cUserName);
 	SendData(_packet.PacketData);
 
+}
+
+void CClient::GetRemoteIPAddress(char *_pcSendersIP) {
+	inet_ntop(AF_INET, &(m_ServerSocketAddress.sin_addr), _pcSendersIP, sizeof(_pcSendersIP));
+	return;
+}
+
+unsigned short CClient::GetRemotePort() {
+	return ntohs(m_ServerSocketAddress.sin_port);
+}
+
+void CClient::GetPacketData(char* _pcLocalBuffer) {
+	strcpy_s(_pcLocalBuffer, strlen(m_pcPacketData) + 1, m_pcPacketData);
+}
+
+CWorkQueue<char*>* CClient::GetWorkQueue() {
+	return m_pWorkQueue;
+}
+
+char* CClient::GetName() {
+	return m_cUserName;
+}
+
+std::vector<sockaddr_in> CClient::GetPorts() {
+	return m_vecServerAddr;
+}
+
+std::vector<std::string> CClient::GetIPAddresses() {
+	return m_cIPAddresses;
 }
 
 bool CClient::HasGameStarted() {

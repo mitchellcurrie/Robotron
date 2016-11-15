@@ -67,7 +67,7 @@ struct TPacket
 
 		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
 
-		PacketSize = _strToSend.size();
+		PacketSize = (unsigned short)_strToSend.size();
 	}
 	
 	TPacket Deserialize(char* _PacketData)
@@ -119,7 +119,7 @@ struct TPacket
 
 		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
 
-		PacketSize = _strToSend.size();
+		PacketSize = (unsigned short)_strToSend.size();
 	}
 
 	TPacket DeserializePositionWithKeys(char* _PacketData)
@@ -172,7 +172,7 @@ struct TPacket
 
 		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
 
-		PacketSize = _strToSend.size();
+		PacketSize = (unsigned short)_strToSend.size();
 	}
 
 	TPacket DeserializePosition(char* _PacketData)
