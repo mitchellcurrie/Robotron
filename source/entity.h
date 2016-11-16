@@ -29,10 +29,26 @@ public:
 	
 	static void KeyDown(unsigned char key, int x, int y);
 	static void KeyUp(unsigned char key, int x, int y);
-	static void IncrementPlayerBulletCounter();
+
+	// Player
+	static void IncrementPlayer1BulletCounter();
+	static void IncrementPlayer2BulletCounter();
+	static void IncrementPlayer3BulletCounter();
+	static void IncrementPlayer4BulletCounter();
+
+	static int GetPlayer1BulletCounter();
+	static int GetPlayer2BulletCounter();
+	static int GetPlayer3BulletCounter();
+	static int GetPlayer4BulletCounter();
+
+	static bool IsP1BulletFired();
+	static bool IsP2BulletFired();
+	static bool IsP3BulletFired();
+	static bool IsP4BulletFired();
+
+	// Enemy
 	static void IncrementEnemyBulletCounter();
 	static void IncrementEnemyCounter();
-	static int GetPlayerBulletCounter();
 	static int GetEnemyBulletCounter();
 	static int GetEnemyCounter();
 	static void ResetEnemyCounter();
@@ -67,7 +83,7 @@ public:
 	void ResetFireRate();
 	void SetEnemyToFlee(bool _b);
 
-	static bool IsBulletFired();
+	//static bool IsBulletFired();
 	bool ToDelete();
 	bool IsPlayer();
 	bool IsActive();
@@ -80,45 +96,80 @@ public:
 
 	std::string GetAIName();
 	vec2 GetTextPosition();
-	std::string GetScore();
-	std::string GetLives();
+//	std::string GetScore();
+//	std::string GetLives();
 	Model* GetModel();
 	EntityType GetEntityType();
-	int GetPlayerLives();
+//	int GetPlayerLives();
 	PowerUpType GetPowerUpType();
 	
 	void SetLeader(bool _b);
 	void SetAsPlayer();	
 	void SetToDead();
 	void SetLeaderDead();
-	void SetActivity(bool _activity);
+	void SetActive(bool _activity);
 	void SetModelPosition(vec3 _position);
-	void SetBulletFired(bool _b);
+
+//	void SetBulletFired(bool _b);
+	void SetP1BulletFired(bool _b);
+	void SetP2BulletFired(bool _b);
+	void SetP3BulletFired(bool _b);
+	void SetP4BulletFired(bool _b);
 	void SetToAlive();
 	void SetAsEnemyBullet();
 	void SetModelOutsideMap(bool _b);
 	void SetPowerUpType(PowerUpType _type);
+
+	void SetBulletPlayer(BulletPlayer _player);
+	void SetPlayerNumber(PlayerNumber _number);
+
+	BulletPlayer GetBulletPlayer();
+	PlayerNumber GetPlayerNumber();
 	
-	void AddToScore(int _Score);	
-	void ReducePlayerLives();
-	void ResetPlayerLives();
-	void ResetScore();		
-	void AddExtraLife();
-	void ResetScoreCounter();
-	int GetScoreCounter();
+	//void AddToScore(int _Score);	
+	//void ReducePlayerLives();
+	//void ResetPlayerLives();
+	//void ResetScore();		
+	//void AddExtraLife();
+	//void ResetScoreCounter();
+	//int GetScoreCounter();
 	
 private:
 
-	static std::clock_t m_start;
-	static double m_duration;
+	/*static std::clock_t m_start;
+	static double m_duration;*/
+
+	static std::clock_t m_P1start;
+	static double m_P1duration;
+
+	static std::clock_t m_P2start;
+	static double m_P2duration;
+
+	static std::clock_t m_P3start;
+	static double m_P3duration;
+
+	static std::clock_t m_P4start;
+	static double m_P4duration;
+
 	static vec3 m_CurrentPlayerVelocity;
 	static vec3 m_CurrentLeaderVelocity;
 	static vec3 m_LastBulletVelocity;
-	static int m_iPlayerBulletCounter;
+	/*static int m_iPlayerBulletCounter;*/
+
+	static int m_iPlayer1BulletCounter;
+	static int m_iPlayer2BulletCounter;
+	static int m_iPlayer3BulletCounter;
+	static int m_iPlayer4BulletCounter;
+
 	static int m_iEnemyBulletCounter;
 	static int m_iEnemyCounter;
 	static bool m_bLeaderDead;
-	static bool m_bBulletFired;
+
+	static bool m_bP1BulletFired;
+	static bool m_bP2BulletFired;
+	static bool m_bP3BulletFired;
+	static bool m_bP4BulletFired;
+//	static bool m_bBulletFired;
 	
 	Model* m_pModel;
 
@@ -129,6 +180,7 @@ private:
 	AIBehaviour m_Behaviour;
 	vec2 m_textPosition;
 	PowerUpType m_PowerUp;
+	PlayerNumber m_PlayerNumber;
 	
 	static unsigned char keyState[255];
 
@@ -136,9 +188,9 @@ private:
 	float m_fMaxVelocity;
 	float m_fStartingMaxVelocity;
 	float m_fFireRate;
-	int m_iScore;
-	int m_iScoreCounter;
-	int m_iPlayerLives;
+	//int m_iScore;
+	//int m_iScoreCounter;
+	//int m_iPlayerLives;
 					
 	bool m_bSetBulletDirection;
 	bool m_bIsLeader;
@@ -150,5 +202,7 @@ private:
 	bool m_bFastFire;
 	bool m_bIsFleeing;
 //	bool m_bEnemyToFire;
+
+	BulletPlayer m_BulletPlayer;
 };
 

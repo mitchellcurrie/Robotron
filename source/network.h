@@ -19,7 +19,8 @@
 enum EEntityType
 {
 	CLIENT = 1,
-	SERVER
+	SERVER,
+	UNDEFINED
 };
 
 //constants
@@ -42,6 +43,7 @@ class INetworkEntity;
 class CNetwork
 {
 public:
+	CNetwork();
 	~CNetwork();
 	
 	bool Initialise(EEntityType _eType);
@@ -57,7 +59,7 @@ public:
 
 private:
 	//Make the network class a singleton. There is only one instance of the network running
-	CNetwork();
+//	CNetwork();
 	CNetwork(const CNetwork& _kr);
 	CNetwork& operator= (const CNetwork& _kr);
 

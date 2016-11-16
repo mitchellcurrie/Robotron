@@ -18,11 +18,7 @@
 
 #include "camera.h"
 
-Camera::Camera()
-{
-
-}
-
+Camera::Camera() {}
 
 Camera::Camera(vec3 _cameraPos, vec3 _cameraFront, vec3 _cameraUp, GLfloat _width, GLfloat _height)
 {

@@ -29,6 +29,7 @@ enum EMessageType : unsigned short
 {
 	HANDSHAKE,
 	DATA,
+	POSITION,
 	KEEPALIVE,
 	COMMAND,
 	BROADCAST,
@@ -66,7 +67,7 @@ struct TPacket
 
 		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
 
-		PacketSize = _strToSend.size();
+		PacketSize = (unsigned short)_strToSend.size();
 	}
 	
 	TPacket Deserialize(char* _PacketData)
@@ -118,7 +119,7 @@ struct TPacket
 
 		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
 
-		PacketSize = _strToSend.size();
+		PacketSize = (unsigned short)_strToSend.size();
 	}
 
 	TPacket DeserializePositionWithKeys(char* _PacketData)
@@ -171,7 +172,7 @@ struct TPacket
 
 		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
 
-		PacketSize = _strToSend.size();
+		PacketSize = (unsigned short)_strToSend.size();
 	}
 
 	TPacket DeserializePosition(char* _PacketData)
@@ -182,9 +183,9 @@ struct TPacket
 		iss >> this->MessageType;
 		iss >> this->Name;
 		iss >> this->MessageContent;
-		iss >> this->Position.x;   // Clients player position
+		iss >> this->Position.x;
 		iss >> this->Position.y;
-		iss >> this->Position.z;
+		iss >> this->Position.z; // Clients player position
 
 		/*std::string _tempMessageBuffer;
 

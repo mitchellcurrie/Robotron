@@ -16,8 +16,8 @@
 #include <iostream>
 #include <vector>
 #include <Windows.h>
-#include <cassert>
-#include <thread>
+//#include <cassert>
+//#include <thread>
 #include <ctime>
 
 #include "glew.h"
@@ -28,13 +28,13 @@
 #include "camera.h"
 #include "gameScene.h"
 #include "ShaderLoader.h"
-
-#include "consoletools.h"
-#include "network.h"
-#include "client.h"
-#include "server.h"
-#include "InputLineBuffer.h"
-#include <functional>
+//
+//#include "consoletools.h"
+//#include "network.h"
+//#include "client.h"
+//#include "server.h"
+//#include "InputLineBuffer.h"
+//#include <functional>
 
 #include <ft2build.h>
 
@@ -46,7 +46,8 @@
 
 #include "global.h"
 
-#pragma comment(lib,"ws2_32.lib")
+//// make sure the winsock lib is included...
+//#pragma comment(lib,"ws2_32.lib")
 
 static int windowID;
 
@@ -56,14 +57,22 @@ static int windowID;
 * Return: void
 ********************/
 void render() {
-	GameScene::GetInstance().Update();
-
+	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	GameScene::GetInstance().RenderEntities(); // for entities
 	GameScene::GetInstance().RenderText(); // for text
 	glutSwapBuffers();
+
+}
+
+void update(){
+	
+	GameScene::GetInstance().UpdateNetwork();
+	GameScene::GetInstance().Update();
+//	GameScene::GetInstance().UpdateServer();
+
 }
 
 /***********************
@@ -93,6 +102,8 @@ void KeyUp(unsigned char key, int x, int y) {
 * Return: integer
 ********************/
 int main(int argc, char **argv) {
+
+	// Create Game window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(170, 35);
@@ -100,13 +111,12 @@ int main(int argc, char **argv) {
 	windowID = glutCreateWindow("Robotron");
 
 	glewInit();
-
-	GameScene::GetInstance().SetUp(WIDTH, HEIGHT);
-
-	// glutIdleFunc(update);
-
 	//clear
 	glClearColor(0.0, 0.0, 1.0, 0.0);
+
+	GameScene::GetInstance().SetUp(WIDTH, HEIGHT);
+		
+	glutIdleFunc(update);
 
 	// register callbacks
 	glutDisplayFunc(render);

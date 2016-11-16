@@ -21,6 +21,7 @@
 // Local Includes
 #include "networkentity.h"
 #include "WorkQueue.h"
+#include "entity.h"
 
 // Types
 
@@ -55,12 +56,23 @@ public:
 	virtual unsigned short GetRemotePort();
 	bool HasGameStarted();
 	char* GetName();
-	void Process(char* BufferToReceive);
+	void ProcessData(char* BufferToReceive);
 
 	void GetPacketData(char* _pcLocalBuffer);
 	CWorkQueue<char*>* GetWorkQueue();
 
 	bool BroadcastForServers();
+
+	std::vector<sockaddr_in> GetPorts();
+	std::vector<std::string> GetIPAddresses();
+
+	void ConnectToServer(int _iIndex);
+
+	// GameScene
+	bool IsActive();
+	bool HasGameStarted() const;
+	bool IsActive(std::string _player);
+	glm::vec3 GetPosition(std::string _playerName);
 
 private:
 	// Question 7 : Broadcast to Detect Servers
@@ -83,10 +95,26 @@ private:
 	//Question 7
 	//A vector to hold all the servers found after broadcasting
 	std::vector<sockaddr_in> m_vecServerAddr;
+	std::vector<std::string> m_cIPAddresses;
 	bool m_bDoBroadcast;
 
 	bool m_bGameStarted;
-	
+
+	// GameScene
+	bool m_bIsActive;
+
+	// Players
+	std::vector<glm::vec3*> m_playerPositions;
+	vec3* m_pPlayer1Pos;
+	vec3* m_pPlayer2Pos;
+	vec3* m_pPlayer3Pos;
+	vec3* m_pPlayer4Pos;
+
+	bool m_bP1Active;
+	bool m_bP2Active;
+	bool m_bP3Active;
+	bool m_bP4Active;
+
 
 };
 

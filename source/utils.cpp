@@ -279,3 +279,8 @@ GLuint* Utils::GetIndices()
 	return m_indices;
 }
 
+void SetColor(Color _color) {
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), _color);
+
+}

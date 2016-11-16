@@ -26,6 +26,7 @@
 // Local Includes
 #include "networkentity.h"
 #include "WorkQueue.h"
+#include "entity.h"
 
 // Types
 
@@ -60,14 +61,21 @@ public:
 
 	virtual bool SendDataTo(char* _pcDataToSend, sockaddr_in Addreses);
 	virtual bool SendDataToAll(char* _pcDataToSend);
+	bool SendToAllExcept(TClientDetails _client, char* _pcDataToSend);
 	bool HasGameStarted();
 	bool HasNotifiedPlayers();
 	void SetNotifiedPlayers(bool _b);
 	int GetNumberOfPlayers();
 
-
 	void GetPacketData(char* _pcLocalBuffer);
 	CWorkQueue<char*>* GetWorkQueue();
+
+	void CreateEntities();
+	void AddPlayer(Player* _player);
+	Player* GetPlayer(std::string _player);
+	void SendPositionsToPlayers();
+
+	std::string GetServerAddress();
 
 	//Qs 2: Function to add clients to the map.
 private:
@@ -84,8 +92,9 @@ private:
 
 	//Qs 2 : Make a map to hold the details of all the client who have connected. 
 	//The structure maps client name to their addresses
-	std::map<std::string, TClientDetails> m_pConnectedClients;
+	std::map<std::string, TClientDetails> m_connectedClients;
 
+	
 	//A workQueue to distribute messages between the main thread and Receive thread.
 	CWorkQueue<char*>* m_pWorkQueue;
 
@@ -103,6 +112,14 @@ private:
 	bool m_bGameStarted;
 	bool m_bNotifiedPlayersOfStart;
 
+	int m_iActivePlayers;
+
+	//// Players
+	std::vector<Player*> m_players;
+	Player* m_pPlayer1;
+	Player* m_pPlayer2;
+	Player* m_pPlayer3;
+	Player* m_pPlayer4;
 };
 
 #endif

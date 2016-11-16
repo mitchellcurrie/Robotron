@@ -27,13 +27,29 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-template<typename T>
-std::string ToString(const T& _value)
+struct Player
 {
-	std::strstream theStream;
-	theStream << _value << std::ends;
-	return (theStream.str());
-}
+	// Variables
+	glm::vec3 m_Position;
+	bool m_bIsActive;
+
+	// Functions
+	void SetPosition(glm::vec3 _position){
+		m_Position = _position;
+	}
+
+	glm::vec3 GetPosition() {
+		return m_Position;
+	}
+
+	void SetActivity(bool _b) {
+		m_bIsActive = _b;
+	}
+
+	bool IsActive() {
+		return m_bIsActive;
+	}
+};
 
 struct Position
 {
@@ -58,6 +74,7 @@ struct IndexFormat
 enum GameState 
 {
 	MENU,
+	NETWORK_SELECT,
 	PLAY,
 	CREDITS,
 	GAME_OVER,
@@ -85,18 +102,23 @@ enum EntityType
 
 enum TextType
 {
+	M_LABEL,
+	M_CURSOR,
+	NS_LABEL,
+	NS_CURSOR,
+	SERVER_LABEL,
+	CLIENT_LABEL,
+	CLIENT_CURSOR,
 	P_LABEL,
 	P_AIDESCRIPTION,
 	P_SCORE,
 	P_LEVEL,
 	P_LIVES,
-	M_LABEL,
-	M_CURSOR,
+	C_LABEL,
 	G_LABEL,
 	G_SCORE,
 	G_LEVEL,
-	C_LABEL
-
+	NONE
 };
 
 enum AIBehaviour
@@ -118,6 +140,50 @@ enum PowerUpType
 	FASTFIRING,
 	ENEMYFLEE
 };
+
+enum BulletPlayer {
+	NONPLAYERBULLET,
+	BP1,
+	BP2,
+	BP3,
+	BP4
+};
+
+enum PlayerNumber {
+	NONPLAYER,
+	P1,
+	P2,
+	P3,
+	P4
+};
+
+enum Color {
+	BLACK = 0,
+	DBLUE,
+	DGREEN,
+	DTEAL,
+	DRED,
+	DPINK,
+	BROWN,
+	GRAY,
+	DGRAY,
+	BLUE,
+	GREEN,
+	TEAL,
+	RED,
+	PINK,
+	YELLOW,
+	WHITE
+};
+
+template<typename T>
+std::string ToString(const T& _value) {
+	std::strstream theStream;
+	theStream << _value << std::ends;
+	return (theStream.str());
+}
+
+void SetColor(Color _color);
 
 class Utils
 {

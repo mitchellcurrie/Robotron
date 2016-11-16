@@ -26,31 +26,28 @@
 
 
 CSocket::CSocket()
-	:m_hSocket(0)
-{
+	:m_hSocket(0) {
 	ZeroMemory(&m_SocketAddress, sizeof(m_SocketAddress));
 }
 
-CSocket::~CSocket()
-{
+CSocket::~CSocket() {
 	closesocket(m_hSocket);
 }
 
 //Implicit Assumption: We are creating only UDP sockets.....
-bool CSocket::Initialise(char* _pcIPAddress, unsigned short _usPortNumber)
-{
+bool CSocket::Initialise(char* _pcIPAddress, unsigned short _usPortNumber) {
+
 	int _iError;
+
 	//Create a UDP socket 
 	m_hSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (INVALID_SOCKET == m_hSocket)
-	{
+	if (INVALID_SOCKET == m_hSocket) {
 		_iError = WSAGetLastError();
 		ErrorRoutines::PrintWSAErrorInfo(_iError);
 		std::cout << "Unable to create socket\n";
 		return false;
 	}
-	else
-	{
+	else {
 		std::cout << "Successfully created the socket" << std::endl;
 	}
 
@@ -61,47 +58,47 @@ bool CSocket::Initialise(char* _pcIPAddress, unsigned short _usPortNumber)
 	m_SocketAddress.sin_addr.S_un.S_addr = INADDR_ANY;
 
 	//Qs 1 : Change if to while; incrementing the port number every time!
-	while (0 != bind(m_hSocket, reinterpret_cast<sockaddr*>(&m_SocketAddress), sizeof(m_SocketAddress)))
-	{
+	while (0 != bind(m_hSocket, reinterpret_cast<sockaddr*>(&m_SocketAddress), sizeof(m_SocketAddress))) {
+
 		closesocket(m_hSocket);
 		_usPortNumber++;
 
 		m_hSocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		m_SocketAddress.sin_port = htons(_usPortNumber);
 
-		//std::cout << "unable to bind socket to " << _pcIPAddress << ":" << _usPortNumber << " - is something else running ? " << std::endl;
-		//return false;
 	}
-	//else
-	//{
-	std::cout << "Successfully bound the socket " << "to " << _pcIPAddress << ":" << _usPortNumber << std::endl;
-	//}
+	
+	// Fixed the broadcasting (IDK HOW)
+	std::cout << "Successfully bound the socket " << "to " << GetLocalAddress() << ":" << _usPortNumber << std::endl;
 
 	return true;
+
 }
 
-int CSocket::EnableBroadcast()
-{
+int CSocket::EnableBroadcast() {
+
 	int _iBroadCastOption = 1;
 	int _iResult = setsockopt(m_hSocket, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&_iBroadCastOption), sizeof(_iBroadCastOption));
-	if (_iResult == SOCKET_ERROR)
-	{
+
+	if (_iResult == SOCKET_ERROR) {
+
 		int _iError = WSAGetLastError();
 		ErrorRoutines::PrintWSAErrorInfo(_iError);
 		std::cout << "Unable to enable broadcast option on the socket" << std::endl;
 		closesocket(m_hSocket);
 		return _iError;
+
 	}
+
 	return _iResult;
+
 }
 
 
-int CSocket::DisableBroadcast()
-{
+int CSocket::DisableBroadcast() {
 	int _iBroadCastOption = 0;
 	int _iResult = setsockopt(m_hSocket, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&_iBroadCastOption), sizeof(_iBroadCastOption));
-	if (_iResult == SOCKET_ERROR)
-	{
+	if (_iResult == SOCKET_ERROR) {
 		int _iError = WSAGetLastError();
 		ErrorRoutines::PrintWSAErrorInfo(_iError);
 		std::cout << "Unable to disable broadcast option on the socket" << std::endl;
@@ -111,23 +108,20 @@ int CSocket::DisableBroadcast()
 	return _iResult;
 }
 
-SOCKET CSocket::GetSocketHandle()
-{
+SOCKET CSocket::GetSocketHandle() {
 	return m_hSocket;
 }
 
-void CSocket::SetRemotePort(unsigned short _usRemotePort)
-{
+void CSocket::SetRemotePort(unsigned short _usRemotePort) {
 	m_usRemotePort = _usRemotePort;
 }
 
-void CSocket::SetRemoteAddress(unsigned long _ulRemoteAddress)
-{
+void CSocket::SetRemoteAddress(unsigned long _ulRemoteAddress) {
 	m_ulRemoteIPAddress = _ulRemoteAddress;
 }
 
-std::string CSocket::GetLocalAddress()
-{
+std::string CSocket::GetLocalAddress() {
+
 	char _pcLocalHostName[256];
 	char _pcLocalAddress[256];
 	struct sockaddr_in* sockaddr_localIP;
@@ -140,7 +134,6 @@ std::string CSocket::GetLocalAddress()
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
-
 
 	_iReturnValue = getaddrinfo(_pcLocalHostName, NULL, &hints, &result);
 
