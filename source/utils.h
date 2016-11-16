@@ -32,9 +32,42 @@ struct Player
 	// Variables
 	glm::vec3 m_Position;
 	bool m_bIsActive;
+	char* m_name;
 
 	// Functions
 	void SetPosition(glm::vec3 _position){
+		m_Position = _position;
+	}
+
+	glm::vec3 GetPosition() {
+		return m_Position;
+	}
+
+	void SetActivity(bool _b) {
+		m_bIsActive = _b;
+	}
+
+	bool IsActive() {
+		return m_bIsActive;
+	}
+
+	void SetName(char* _name) {
+	//	strcpy_s(m_name, strlen(_name) + 1, _name);
+		m_name = _name;
+	}
+
+	char* GetName() {
+		return m_name;
+	}
+};
+
+struct Enemy {
+	// Variables
+	glm::vec3 m_Position;
+	bool m_bIsActive;
+
+	// Functions
+	void SetPosition(glm::vec3 _position) {
 		m_Position = _position;
 	}
 

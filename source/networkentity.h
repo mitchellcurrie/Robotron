@@ -18,6 +18,8 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
+#include "utils.h"
 
 #include <ft2build.h>
 #include "glm/glm.hpp"
@@ -25,32 +27,35 @@
 #include "glm/gtc/type_ptr.hpp"
 
 
-enum EMessageType : unsigned short
-{
+enum EMessageType : unsigned short {
 	HANDSHAKE,
 	DATA,
-	POSITION,
+	POSITION_P,
+	POSITION_E,
 	KEEPALIVE,
 	COMMAND,
 	BROADCAST,
 	QUIT
 };
 
-struct TPacket 
-{
+struct TPacket {
 	unsigned short MessageType;
 	char MessageContent[256];
 	char Name[50];
-	char PacketData[60];
+	char PacketData[256];
 	unsigned short PacketSize;
+
 	glm::vec3 Position;
+	glm::vec3 PlayerPositions[4];
+	std::vector<Enemy*> Enemies;
+	bool isActive;
+	//	char PlayerNames[4][50];
 	unsigned char Key1;  // for bullets
 	unsigned char Key2;  // for bullets
 
 	//void set_packet(short _x, short _y, WORD _object_type, short _object_index, WORD _param)
-	void Serialize(EMessageType _MessageType, char* _name, char* _message)
-	{
-		
+	void Serialize(EMessageType _MessageType, char* _name, char* _message) {
+
 		MessageType = _MessageType;
 		strcpy_s(MessageContent, strlen(_message) + 1, _message);
 		strcpy_s(Name, strlen(_name) + 1, _name);
@@ -61,7 +66,7 @@ struct TPacket
 		oss << Name;
 		oss << " ";
 		oss << MessageContent;
-		
+
 		std::string _strToSend = oss.str();
 		const char* _pcToSend = _strToSend.c_str();
 
@@ -69,9 +74,8 @@ struct TPacket
 
 		PacketSize = (unsigned short)_strToSend.size();
 	}
-	
-	TPacket Deserialize(char* _PacketData)
-	{
+
+	TPacket Deserialize(char* _PacketData) {
 		std::string _strTemp(_PacketData);
 		std::istringstream iss(_strTemp);
 
@@ -85,8 +89,7 @@ struct TPacket
 		return *this;
 	}
 
-	void SerializePosition(EMessageType _MessageType, char* _name, char* _message, glm::vec3 _position, unsigned char _Key1, unsigned char _Key2)
-	{
+	void SerializePosition(EMessageType _MessageType, char* _name, char* _message, glm::vec3 _position, unsigned char _Key1, unsigned char _Key2) {
 
 		MessageType = _MessageType;
 		strcpy_s(MessageContent, strlen(_message) + 1, _message);
@@ -122,8 +125,7 @@ struct TPacket
 		PacketSize = (unsigned short)_strToSend.size();
 	}
 
-	TPacket DeserializePositionWithKeys(char* _PacketData)
-	{
+	TPacket DeserializePositionWithKeys(char* _PacketData) {
 		std::string _strTemp(_PacketData);
 		std::istringstream iss(_strTemp);
 
@@ -144,8 +146,7 @@ struct TPacket
 		return *this;
 	}
 
-	void SerializePosition(EMessageType _MessageType, char* _name, char* _message, glm::vec3 _position)
-	{
+	void SerializePosition(EMessageType _MessageType, char* _name, char* _message, glm::vec3 _position) {
 
 		MessageType = _MessageType;
 		strcpy_s(MessageContent, strlen(_message) + 1, _message);
@@ -175,8 +176,154 @@ struct TPacket
 		PacketSize = (unsigned short)_strToSend.size();
 	}
 
-	TPacket DeserializePosition(char* _PacketData)
-	{
+	void SerializePosition(EMessageType _MessageType, glm::vec3 _position1, glm::vec3 _position2, glm::vec3 _position3, glm::vec3 _position4) {
+
+		MessageType = _MessageType;
+		//	strcpy_s(MessageContent, strlen(_message) + 1, _message);
+
+		PlayerPositions[0] = _position1;
+		PlayerPositions[1] = _position2;
+		PlayerPositions[2] = _position3;
+		PlayerPositions[3] = _position4;
+
+		std::ostringstream oss;
+		oss << MessageType;
+		oss << " ";
+		oss << PlayerPositions[0].x;
+		oss << " ";
+		oss << PlayerPositions[0].z;
+		oss << " ";
+		oss << PlayerPositions[1].x;
+		oss << " ";
+		oss << PlayerPositions[1].z;
+		oss << " ";
+		oss << PlayerPositions[2].x;
+		oss << " ";
+		oss << PlayerPositions[2].z;
+		oss << " ";
+		oss << PlayerPositions[3].x;
+		oss << " ";
+		oss << PlayerPositions[3].z;
+
+		std::string _strToSend = oss.str();
+		const char* _pcToSend = _strToSend.c_str();
+
+		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
+
+		PacketSize = (unsigned short)_strToSend.size();
+	}
+
+	void SerializeEnemies(EMessageType _MessageType, Enemy* _enemy1, Enemy* _enemy2, Enemy* _enemy3, Enemy* _enemy4, Enemy* _enemy5, Enemy* _enemy6, Enemy* _enemy7, Enemy* _enemy8) {
+
+		MessageType = _MessageType;
+		//	strcpy_s(MessageContent, strlen(_message) + 1, _message);
+
+		Enemies.push_back(_enemy1);
+		Enemies.push_back(_enemy2);
+		Enemies.push_back(_enemy3);
+		Enemies.push_back(_enemy4);
+		Enemies.push_back(_enemy5);
+		Enemies.push_back(_enemy6);
+		Enemies.push_back(_enemy7);
+		Enemies.push_back(_enemy8);
+
+		std::ostringstream oss;
+		oss << MessageType;
+		oss << " ";
+		oss << Enemies[0]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[0]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[0]->IsActive();
+		oss << " ";
+		oss << Enemies[1]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[1]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[1]->IsActive();
+		oss << " ";
+		oss << Enemies[2]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[2]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[2]->IsActive();
+		oss << " ";
+		oss << Enemies[3]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[3]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[3]->IsActive();
+		oss << " ";
+		oss << Enemies[4]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[4]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[4]->IsActive();
+		oss << " ";
+		oss << Enemies[5]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[5]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[5]->IsActive();
+		oss << " ";
+		oss << Enemies[6]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[6]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[6]->IsActive();
+		oss << " ";
+		oss << Enemies[7]->GetPosition().x;
+		oss << " ";
+		oss << Enemies[7]->GetPosition().z;
+		oss << " ";
+		oss << Enemies[7]->IsActive();
+
+		std::string _strToSend = oss.str();
+		const char* _pcToSend = _strToSend.c_str();
+
+		strcpy_s(PacketData, strlen(_pcToSend) + 1, _pcToSend);
+
+		PacketSize = (unsigned short)_strToSend.size();
+	}
+
+	TPacket DeserializeEnemies(char* _PacketData) {
+
+		std::string _strTemp(_PacketData);
+		std::istringstream iss(_strTemp);
+
+		iss >> this->MessageType;
+
+		for (int i = 0; i < 8; i++) {
+			Enemy temp;
+			iss >> this->Position.x;
+			iss >> this->Position.z;
+			iss >> this->isActive;
+			temp.SetPosition(Position);
+			temp.SetActivity(isActive);
+			Enemies.push_back(&temp);
+		}
+
+		return *this;
+	}
+
+	TPacket DeserializePlayerPositions(char* _PacketData) {
+		std::string _strTemp(_PacketData);
+		std::istringstream iss(_strTemp);
+
+		iss >> this->MessageType;
+		iss >> this->PlayerPositions[0].x;
+		iss >> this->PlayerPositions[0].z;
+		iss >> this->PlayerPositions[1].x;
+		iss >> this->PlayerPositions[1].z;
+		iss >> this->PlayerPositions[2].x;
+		iss >> this->PlayerPositions[2].z;
+		iss >> this->PlayerPositions[3].x;
+		iss >> this->PlayerPositions[3].z;
+
+		return *this;
+	}
+
+	TPacket DeserializePosition(char* _PacketData) {
 		std::string _strTemp(_PacketData);
 		std::istringstream iss(_strTemp);
 
@@ -196,8 +343,7 @@ struct TPacket
 	}
 };
 
-class INetworkEntity
-{
+class INetworkEntity {
 public:
 	virtual bool Initialise() = 0; //Implicit in the intialization is the creation and binding of the socket
 	virtual bool SendData(char* _pcDataToSend) = 0;

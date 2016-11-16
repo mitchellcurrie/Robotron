@@ -73,6 +73,13 @@ public:
 	bool HasGameStarted() const;
 	bool IsActive(std::string _player);
 	glm::vec3 GetPosition(std::string _playerName);
+	std::vector<Enemy*> GetEnemies();
+
+	void SetCollision(bool _b);
+	bool HasCollided();
+
+	void AddEnemy(Enemy* _enemy);
+
 
 private:
 	// Question 7 : Broadcast to Detect Servers
@@ -99,22 +106,20 @@ private:
 	bool m_bDoBroadcast;
 
 	bool m_bGameStarted;
+	bool m_bHasCollided;
 
 	// GameScene
 	bool m_bIsActive;
 
 	// Players
-	std::vector<glm::vec3*> m_playerPositions;
-	vec3* m_pPlayer1Pos;
-	vec3* m_pPlayer2Pos;
-	vec3* m_pPlayer3Pos;
-	vec3* m_pPlayer4Pos;
+	std::vector<Player*> m_playerPositions;
+	Player* m_pPlayer1;
+	Player* m_pPlayer2;
+	Player* m_pPlayer3;
+	Player* m_pPlayer4;
 
-	bool m_bP1Active;
-	bool m_bP2Active;
-	bool m_bP3Active;
-	bool m_bP4Active;
-
+	std::vector<Enemy*> m_enemies;
+	Enemy* m_pEnemy;
 
 };
 

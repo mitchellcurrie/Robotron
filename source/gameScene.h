@@ -31,6 +31,7 @@
 #include "client.h"
 #include "server.h"
 #include <thread>
+#include <mutex>
 
 #include "camera.h"
 #include "entity.h"
@@ -134,6 +135,8 @@ public:
 	float GetDeltaTick();*/
 	//	void ExecuteOneFrame();
 
+	void UpdateEnemiesForClient();
+
 protected:
 	CClock* m_pClock;
 
@@ -227,5 +230,7 @@ private:
 	TPacket m_packet;
 	std::string username;
 	char* usernameC;
+
+//	std::mutex EnemiesMutex;
 
 };

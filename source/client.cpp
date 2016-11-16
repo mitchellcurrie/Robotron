@@ -39,7 +39,7 @@ CClient::CClient()
 	//Create a Packet Array and fill it out with all zeros.
 	m_pcPacketData = new char[MAX_MESSAGE_LENGTH];
 	ZeroMemory(m_pcPacketData, MAX_MESSAGE_LENGTH);
-	m_bQuit, m_bP1Active, m_bP2Active, m_bP3Active, m_bP4Active = false;
+	m_bQuit, m_bHasCollided = false;
 }
 
 CClient::~CClient() {
@@ -61,10 +61,22 @@ CClient::~CClient() {
 ********************/
 bool CClient::Initialise() {
 
-	m_pPlayer1Pos = new glm::vec3;
-	m_pPlayer2Pos = new glm::vec3;
-	m_pPlayer3Pos = new glm::vec3;
-	m_pPlayer4Pos = new glm::vec3;
+	/*m_pPlayer1 = new Player;
+	m_pPlayer1->SetName("P1");
+	m_pPlayer1->SetActivity(false);
+
+	m_pPlayer2 = new Player;
+	m_pPlayer2->SetName("P2");
+	m_pPlayer2->SetActivity(false);
+
+	m_pPlayer3 = new Player;
+	m_pPlayer3->SetName("P3");
+	m_pPlayer3->SetActivity(false);
+
+	m_pPlayer4 = new Player;
+	m_pPlayer4->SetName("P4");
+	m_pPlayer4->SetActivity(false);*/
+
 
 	//Local Variables to hold Server's IP address and Port NUmber as entered by the user
 	char _cServerIPAddress[128];
@@ -111,6 +123,30 @@ bool CClient::Initialise() {
 			inet_ntop(AF_INET, &(m_vecServerAddr[i].sin_addr), _cServerIPAddress, MAX_ADDRESS_LENGTH);
 			m_cIPAddresses.push_back(_cServerIPAddress);
 		}
+
+	}
+
+	m_pPlayer1 = new Player;
+	m_pPlayer1->SetName("P1");
+	m_pPlayer1->SetActivity(false);
+
+	m_pPlayer2 = new Player;
+	m_pPlayer2->SetName("P2");
+	m_pPlayer2->SetActivity(false);
+
+	m_pPlayer3 = new Player;
+	m_pPlayer3->SetName("P3");
+	m_pPlayer3->SetActivity(false);
+
+	m_pPlayer4 = new Player;
+	m_pPlayer4->SetName("P4");
+	m_pPlayer4->SetActivity(false);
+
+	for (int x{ 0 }; x < 8; x++) {
+
+		m_pEnemy = new Enemy;
+		AddEnemy(m_pEnemy);
+		m_pEnemy->SetActivity(false);
 
 	}
 
@@ -350,17 +386,18 @@ void CClient::ProcessData(char* _pcDataReceived) {
 				std::string UserName = m_cUserName;
 
 				if (UserName == "P1")
-					m_bP1Active = true;
+					m_pPlayer1->SetActivity(true);
 				else if (UserName == "P2")
-					m_bP2Active = true;
+					m_pPlayer2->SetActivity(true);
 				else if (UserName == "P3")
-					m_bP3Active = true;
+					m_pPlayer3->SetActivity(true);
 				else if (UserName == "P4")
-					m_bP4Active = true;
-			}
+					m_pPlayer4->SetActivity(true);
 
-			SetColor(GRAY);
-			break;
+
+				SetColor(GRAY);
+				break;
+			}
 		}
 		case DATA:
 		{
@@ -369,30 +406,87 @@ void CClient::ProcessData(char* _pcDataReceived) {
 			SetColor(GRAY);
 			break;
 		}
-		case POSITION:
+		case POSITION_P:
 		{
 
-			_packetRecvd = _packetRecvd.DeserializePosition(_pcDataReceived);
+			//_packetRecvd = _packetRecvd.DeserializePosition(_pcDataReceived);
 
-			if (strcmp(_packetRecvd.Name, "P1") == 0) {
-				*m_pPlayer1Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
-				m_bP1Active = true;
-			}
+			//if (strcmp(_packetRecvd.Name, "P1") == 0) {
+			//	*m_pPlayer1Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
+			//	m_bP1Active = true;
+			//}
 
-			if (strcmp(_packetRecvd.Name, "P2") == 0) {
-				*m_pPlayer2Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
-				m_bP2Active = true;
-			}
+			//if (strcmp(_packetRecvd.Name, "P2") == 0) {
+			//	*m_pPlayer2Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
+			//	m_bP2Active = true;
+			//}
 
-			if (strcmp(_packetRecvd.Name, "P3") == 0) {
-				*m_pPlayer3Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
-				m_bP3Active = true;
-			}
+			//if (strcmp(_packetRecvd.Name, "P3") == 0) {
+			//	*m_pPlayer3Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
+			//	m_bP3Active = true;
+			//}
 
-			if (strcmp(_packetRecvd.Name, "P4") == 0) {
-				*m_pPlayer4Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
-				m_bP4Active = true;
-			}
+			//if (strcmp(_packetRecvd.Name, "P4") == 0) {
+			//	*m_pPlayer4Pos = glm::vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z);
+			//	m_bP4Active = true;
+			//}
+
+			_packetRecvd = _packetRecvd.DeserializePlayerPositions(_pcDataReceived);
+
+
+			m_pPlayer1->SetActivity(true);
+			m_pPlayer2->SetActivity(true);
+
+
+			m_pPlayer1->SetPosition(glm::vec3(_packetRecvd.PlayerPositions[0].x, 0.0f, _packetRecvd.PlayerPositions[0].z));
+			m_pPlayer2->SetPosition(glm::vec3(_packetRecvd.PlayerPositions[1].x, 0.0f, _packetRecvd.PlayerPositions[1].z));
+			m_pPlayer3->SetPosition(glm::vec3(_packetRecvd.PlayerPositions[2].x, 0.0f, _packetRecvd.PlayerPositions[2].z));
+			m_pPlayer4->SetPosition(glm::vec3(_packetRecvd.PlayerPositions[3].x, 0.0f, _packetRecvd.PlayerPositions[3].z));
+
+			//	if (_packetRecvd.PlayerPositions[0].x != 0.0f) && (_packetRecvd.PlayerPositions[0].x != 0.0f)
+
+
+		/*		TPacket DeserializePlayerPositions(char* _PacketData) {
+					std::string _strTemp(_PacketData);
+					std::istringstream iss(_strTemp);
+
+					iss >> this->MessageType;
+					iss >> this->PlayerPositions[0].x;
+					iss >> this->PlayerPositions[0].z;
+					iss >> this->PlayerPositions[1].x;
+					iss >> this->PlayerPositions[1].z;
+					iss >> this->PlayerPositions[2].x;
+					iss >> this->PlayerPositions[2].z;
+					iss >> this->PlayerPositions[3].x;
+					iss >> this->PlayerPositions[3].z;
+
+					return *this;
+				}*/
+
+			break;
+		}
+		case POSITION_E:
+		{
+			_packetRecvd = _packetRecvd.DeserializeEnemies(_pcDataReceived);
+
+			m_pPlayer1->SetPosition(glm::vec3(_packetRecvd.PlayerPositions[0].x, 0.0f, _packetRecvd.PlayerPositions[0].z));
+
+			m_enemies[0]->SetPosition(_packetRecvd.Enemies[0]->GetPosition());
+			m_enemies[0]->SetActivity(_packetRecvd.Enemies[0]->IsActive());
+			m_enemies[1]->SetPosition(_packetRecvd.Enemies[1]->GetPosition());
+			m_enemies[1]->SetActivity(_packetRecvd.Enemies[1]->IsActive());
+			m_enemies[2]->SetPosition(_packetRecvd.Enemies[2]->GetPosition());
+			m_enemies[2]->SetActivity(_packetRecvd.Enemies[2]->IsActive());
+			m_enemies[3]->SetPosition(_packetRecvd.Enemies[3]->GetPosition());
+			m_enemies[3]->SetActivity(_packetRecvd.Enemies[3]->IsActive());
+			m_enemies[4]->SetPosition(_packetRecvd.Enemies[4]->GetPosition());
+			m_enemies[4]->SetActivity(_packetRecvd.Enemies[4]->IsActive());
+			m_enemies[5]->SetPosition(_packetRecvd.Enemies[5]->GetPosition());
+			m_enemies[5]->SetActivity(_packetRecvd.Enemies[5]->IsActive());
+			m_enemies[6]->SetPosition(_packetRecvd.Enemies[6]->GetPosition());
+			m_enemies[6]->SetActivity(_packetRecvd.Enemies[6]->IsActive());
+			m_enemies[7]->SetPosition(_packetRecvd.Enemies[7]->GetPosition());
+			m_enemies[7]->SetActivity(_packetRecvd.Enemies[7]->IsActive());
 
 			break;
 		}
@@ -422,6 +516,18 @@ void CClient::ProcessData(char* _pcDataReceived) {
 				case 'G':
 				{
 					m_bGameStarted = true;
+					break;
+				}
+
+				case 'C':
+				{
+					m_bHasCollided = true;
+					break;
+				}
+
+				case 'N':
+				{
+					m_bHasCollided = false;
 					break;
 				}
 
@@ -459,35 +565,40 @@ void CClient::ProcessData(char* _pcDataReceived) {
 		default:
 			break;
 
-	}
+		}
+	
+}
 
+bool CClient::IsActive() {
+
+	return false;
 }
 
 bool CClient::IsActive(std::string _player) {
 
 	if (_player == "P1") {
-		if (m_bP1Active)
+		if (m_pPlayer1->IsActive())
 			return true;
 		else
 			return false;
 	}
 
 	else if (_player == "P2") {
-		if (m_bP2Active)
+		if (m_pPlayer2->IsActive())
 			return true;
 		else
 			return false;
 	}
 
 	if (_player == "P3") {
-		if (m_bP3Active)
+		if (m_pPlayer3->IsActive())
 			return true;
 		else
 			return false;
 	}
 
 	if (_player == "P4") {
-		if (m_bP4Active)
+		if (m_pPlayer4->IsActive())
 			return true;
 		else
 			return false;
@@ -499,16 +610,16 @@ bool CClient::IsActive(std::string _player) {
 glm::vec3 CClient::GetPosition(std::string _playerName) {
 
 	if (_playerName == "P1")
-		return *m_pPlayer1Pos;
+		return m_pPlayer1->GetPosition();
 
 	if (_playerName == "P2")
-		return *m_pPlayer2Pos;
+		return m_pPlayer2->GetPosition();
 
 	if (_playerName == "P3")
-		return *m_pPlayer3Pos;
+		return m_pPlayer3->GetPosition();
 
 	if (_playerName == "P4")
-		return *m_pPlayer4Pos;
+		return m_pPlayer4->GetPosition();
 
 	return (glm::vec3(0));
 
@@ -565,4 +676,21 @@ std::vector<std::string> CClient::GetIPAddresses() {
 
 bool CClient::HasGameStarted() {
 	return m_bGameStarted;
+}
+
+void CClient::SetCollision(bool _b) {
+	m_bHasCollided = _b;
+}
+
+bool CClient::HasCollided() {
+	return m_bHasCollided;
+}
+
+void CClient::AddEnemy(Enemy* _enemy) {
+	m_enemies.push_back(_enemy);
+}
+
+std::vector<Enemy*> CClient::GetEnemies() {
+
+	return m_enemies;
 }

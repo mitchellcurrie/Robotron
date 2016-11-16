@@ -73,7 +73,13 @@ public:
 	void CreateEntities();
 	void AddPlayer(Player* _player);
 	Player* GetPlayer(std::string _player);
-	void SendPositionsToPlayers();
+	void SendPlayerPositions();
+	void SendEnemyPositions();
+	std::vector<Player*> GetPlayers();
+	std::vector<Enemy*> GetEnemies();
+	void SetEnemies(std::vector<Enemy*> _enemies);
+
+	void AddEnemy(Enemy* _enemy);
 
 	std::string GetServerAddress();
 
@@ -120,6 +126,11 @@ private:
 	Player* m_pPlayer2;
 	Player* m_pPlayer3;
 	Player* m_pPlayer4;
+
+	std::vector<Enemy*> m_enemies;
+	Enemy* m_pEnemy;
+
+	int m_iCounter;
 };
 
 #endif

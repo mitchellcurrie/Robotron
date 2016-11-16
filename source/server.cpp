@@ -41,7 +41,8 @@ CServer::CServer()
 	m_pServerSocket(0),
 	m_bGameStarted(false),
 	m_bNotifiedPlayersOfStart(false),
-	m_iActivePlayers(0) {
+	m_iActivePlayers(0),
+	m_iCounter(0) {
 	ZeroMemory(&m_ClientAddress, sizeof(m_ClientAddress));
 }
 
@@ -327,13 +328,13 @@ void CServer::ProcessData(char* _pcDataReceived) {
 			SendDataToAll(_packetSent.PacketData);
 			break;
 		}
-		case POSITION:
+		case POSITION_P:
 		{
 			_packetRecvd = _packetRecvd.DeserializePosition(_pcDataReceived);
 
 			//////////////   OPTION 1   /////////////////////
 
-			/*if (ClientDetails.m_strName == "P1") {
+			if (ClientDetails.m_strName == "P1") {
 				m_pPlayer1->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
 				m_pPlayer1->SetActivity(true);
 			}
@@ -353,13 +354,14 @@ void CServer::ProcessData(char* _pcDataReceived) {
 				m_pPlayer4->SetActivity(true);
 			}
 
-			SendPositionsToPlayers();*/
+			SendPlayerPositions();
+			SendEnemyPositions();
 
 			//////////////   OPTION 2   /////////////////////
 
-			_packetSent.SerializePosition(POSITION, _packetRecvd.Name, _packetRecvd.MessageContent, _packetRecvd.Position);
-			  //                                           "P2"                  "-"                      x y z
-			SendDataToAll(_packetSent.PacketData);
+			//_packetSent.SerializePosition(POSITION, _packetRecvd.Name, _packetRecvd.MessageContent, _packetRecvd.Position);
+			//  //                                           "P2"                  "-"                      x y z
+			//SendDataToAll(_packetSent.PacketData);
 
 			////////////////////////////////////////////////////
 
@@ -396,7 +398,17 @@ void CServer::ProcessData(char* _pcDataReceived) {
 					break;
 				}
 
+				case 'C':
+				{
+					if (ClientDetails.m_strName == "P1") {
+						
 
+					}
+					else if (ClientDetails.m_strName == "P2") {
+
+					}
+					break;
+				}
 				default:
 				{
 					break;
@@ -469,27 +481,43 @@ std::string CServer::GetServerAddress() {
 
 void CServer::CreateEntities() {
 
+	m_players.clear();
+
 	// Players
 	m_pPlayer1 = new Player;
 	AddPlayer(m_pPlayer1);
 	m_pPlayer1->SetActivity(false);
+	m_pPlayer1->SetName("P1");
 
 	m_pPlayer2 = new Player;
 	AddPlayer(m_pPlayer2);
 	m_pPlayer2->SetActivity(false);
+	m_pPlayer2->SetName("P2");
 
 	m_pPlayer3 = new Player;
 	AddPlayer(m_pPlayer3);
 	m_pPlayer3->SetActivity(false);
+	m_pPlayer3->SetName("P3");
 
 	m_pPlayer4 = new Player;
 	AddPlayer(m_pPlayer4);
 	m_pPlayer4->SetActivity(false);
+	m_pPlayer4->SetName("P4");
 
+	for (int x{ 0 }; x < 8; x++) {
+
+		m_pEnemy = new Enemy;
+		AddEnemy(m_pEnemy);
+		m_pEnemy->SetActivity(false);
+	}
 }
 
 void CServer::AddPlayer(Player* _player) {
 	m_players.push_back(_player);
+}
+
+void CServer::AddEnemy(Enemy* _enemy) {
+	m_enemies.push_back(_enemy);
 }
 
 bool CServer::HasGameStarted() {
@@ -508,7 +536,7 @@ int CServer::GetNumberOfPlayers() {
 	return m_iNumberOfConnectedPlayers;
 }
 
-Player* CServer::GetPlayer(std::string _player){
+Player* CServer::GetPlayer(std::string _player) {
 
 	if (_player == "P1")
 		return m_pPlayer1;
@@ -522,32 +550,29 @@ Player* CServer::GetPlayer(std::string _player){
 		return nullptr;
 }
 
-void CServer::SendPositionsToPlayers() {
+void CServer::SendPlayerPositions() {
 
 	TPacket _packetToSend;
-
-	if (m_pPlayer1->IsActive()) {
-
-		_packetToSend.SerializePosition(POSITION, "P1", "-", GetPlayer("P1")->GetPosition());
-		SendDataToAll(_packetToSend.PacketData);
-	}
-
-	if (m_pPlayer2->IsActive()) {
-
-		_packetToSend.SerializePosition(POSITION, "P2", "-", GetPlayer("P2")->GetPosition());
-		SendDataToAll(_packetToSend.PacketData);
-	}
-
-	if (m_pPlayer3->IsActive()) {
-
-		_packetToSend.SerializePosition(POSITION, "P3", "-", GetPlayer("P3")->GetPosition());
-		SendDataToAll(_packetToSend.PacketData);
-	}
-
-	if (m_pPlayer4->IsActive()) {
-
-		_packetToSend.SerializePosition(POSITION, "P4", "-", GetPlayer("P4")->GetPosition());
-		SendDataToAll(_packetToSend.PacketData);
-	}
+	_packetToSend.SerializePosition(POSITION_P, GetPlayer("P1")->GetPosition(), GetPlayer("P2")->GetPosition(), GetPlayer("P3")->GetPosition(), GetPlayer("P4")->GetPosition());
+	SendDataToAll(_packetToSend.PacketData);
 }
 
+void CServer::SendEnemyPositions() {
+
+	TPacket _packetToSend;
+	_packetToSend.SerializeEnemies(POSITION_E, m_enemies[0], m_enemies[1], m_enemies[2], m_enemies[3], m_enemies[4], m_enemies[5], m_enemies[6], m_enemies[7]);
+	SendDataToAll(_packetToSend.PacketData);
+}
+
+std::vector<Player*> CServer::GetPlayers() {
+	return m_players;
+}
+
+std::vector<Enemy*> CServer::GetEnemies() {
+	return m_enemies;
+}
+
+void CServer::SetEnemies(std::vector<Enemy*> _enemies) {
+
+	m_enemies = _enemies;
+}
