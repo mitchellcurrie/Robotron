@@ -75,13 +75,25 @@ public:
 	Player* GetPlayer(std::string _player);
 	void SendPlayerPositions();
 	void SendEnemyPositions();
+	void SendPowerUpPosition();
 	std::vector<Player*> GetPlayers();
 	std::vector<Enemy*> GetEnemies();
-	void SetEnemies(std::vector<Enemy*> _enemies);
+	void SetEnemies(std::vector<Enemy> _enemies);
+	void SetPowerUp(PowerUp _powerup);
 
 	void AddEnemy(Enemy* _enemy);
 
+	std::vector<Bullet*> GetP1Bullets();
+	std::vector<Bullet*> GetP2Bullets();
+	std::vector<Bullet*> GetP3Bullets();
+	std::vector<Bullet*> GetP4Bullets();
+
 	std::string GetServerAddress();
+
+	void SendP1BulletPositions();
+	void SendP2BulletPositions();
+	void SendP3BulletPositions();
+	void SendP4BulletPositions();
 
 	//Qs 2: Function to add clients to the map.
 private:
@@ -129,6 +141,12 @@ private:
 
 	std::vector<Enemy*> m_enemies;
 	Enemy* m_pEnemy;
+
+	PowerUp* m_pPowerUp;
+
+	Bullet* m_pBullet;
+
+	std::vector<Bullet*> m_player1Bullets, m_player2Bullets, m_player3Bullets, m_player4Bullets;
 
 	int m_iCounter;
 };

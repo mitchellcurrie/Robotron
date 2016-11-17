@@ -26,21 +26,25 @@ public:
 	virtual void Initialise(EntityType _entity, ModelType _model, GLsizei _numVertices, Camera _camera, vec3 _position, AIBehaviour _behaviour, float _maxVelocity, char* _filename);
 	virtual void Render();
 	virtual void SetPositions(float _fDeltaTick);
+	void SetBulletPositions(float _fDeltaTick);
 	
 	static void KeyDown(unsigned char key, int x, int y);
 	static void KeyUp(unsigned char key, int x, int y);
 
 	// Player
+	static void IncrementPlayerBulletCounter();
 	static void IncrementPlayer1BulletCounter();
 	static void IncrementPlayer2BulletCounter();
 	static void IncrementPlayer3BulletCounter();
 	static void IncrementPlayer4BulletCounter();
 
+	static int GetPlayerBulletCounter();
 	static int GetPlayer1BulletCounter();
 	static int GetPlayer2BulletCounter();
 	static int GetPlayer3BulletCounter();
 	static int GetPlayer4BulletCounter();
 
+	static bool IsPlayerBulletFired();
 	static bool IsP1BulletFired();
 	static bool IsP2BulletFired();
 	static bool IsP3BulletFired();
@@ -110,7 +114,7 @@ public:
 	void SetActive(bool _activity);
 	void SetModelPosition(vec3 _position);
 
-//	void SetBulletFired(bool _b);
+	void SetPlayerBulletFired(bool _b);
 	void SetP1BulletFired(bool _b);
 	void SetP2BulletFired(bool _b);
 	void SetP3BulletFired(bool _b);
@@ -136,8 +140,8 @@ public:
 	
 private:
 
-	/*static std::clock_t m_start;
-	static double m_duration;*/
+	static std::clock_t m_Playerstart;
+	static double m_Playerduration;
 
 	static std::clock_t m_P1start;
 	static double m_P1duration;
@@ -156,6 +160,7 @@ private:
 	static vec3 m_LastBulletVelocity;
 	/*static int m_iPlayerBulletCounter;*/
 
+	static int m_iPlayerBulletCounter;
 	static int m_iPlayer1BulletCounter;
 	static int m_iPlayer2BulletCounter;
 	static int m_iPlayer3BulletCounter;
@@ -169,7 +174,7 @@ private:
 	static bool m_bP2BulletFired;
 	static bool m_bP3BulletFired;
 	static bool m_bP4BulletFired;
-//	static bool m_bBulletFired;
+	static bool m_bPlayerBulletFired;
 	
 	Model* m_pModel;
 

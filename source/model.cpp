@@ -14,6 +14,8 @@
 
 #pragma once
 
+#define _USE_MATH_DEFINES
+
 #include <iostream>
 #include "glew.h"
 #include "freeglut.h"
@@ -196,48 +198,7 @@ void Model::Initialise(ModelType _model, GLsizei _numVertices, Camera _camera, v
 	// Set texture filtering parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//**Load image and create texture 2
-	// Load image, create texture and generate mipmaps
-
-	//char* filename2{ 0 };
-
-	//if (m_ModelType == QUAD)
-	//	filename2 = "Dirt.jpg";
-
-	//else if (m_ModelType == PYRAMID)
-	//	filename2 = "Pattern.jpg";
-
-	//else if (m_ModelType == CUBE)
-	//{
-	//	if (m_IsPlayer)
-	//		filename2 = "PlayerTexture.jpg";
-	//	else
-	//		filename2 = "Assets//Textures//EnemyTexture.jpg";
-	//}
-
-	//else if (m_ModelType == DOT)
-
-	//	if (m_bIsEnemyBullet)
-	//		filename2 = "EnemyBullet.png";
-	//	else
-	//		filename2 = "PlayerBullet.png";
-
-
 	
-	//else if (m_ModelType == TRIANGLE)
-	//{
-	//	filename2 = "Bullet.png";
-	//	iSize = 6;
-	//}
-
-	//else // Octagon
-	//{
-	//	filename2 = "White.jpg";
-	//	iSize = 6;
-	//}
-	
-
 	unsigned char* image2 = SOIL_load_image(m_pcFileName, &width, &height, 0, SOIL_LOAD_RGB);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -319,7 +280,7 @@ void Model::Render(vec3 _CurrentVelocity)
 			m_PlayerPosition = m_position; // static variable stored in all models so they know the player's current position
 		}
 		else //AI
-		{
+		{		
 			/*if (HasEnteredMap())
 				m_bOutsideMap = false;
 
@@ -328,6 +289,25 @@ void Model::Render(vec3 _CurrentVelocity)
 
 		//	if (!m_bOutsideMap)
 			//	m_position = CheckEdgeCollisionAI();
+
+			//_CurrentVelocity.x = 0.5f;
+			//_CurrentVelocity.z = 0.5f;
+
+			//float Distance = 1500.0f;
+			//float Radius = 7.0f;
+
+			//vec3 TargetPosition = vec3(0.0f, 0.0f, 0.0f);
+
+			//vec3 FuturePosition = m_position + _CurrentVelocity * Distance;
+
+			//int AngleDegrees = (rand() % 360) + 1;
+			//float AngleRads = static_cast<float>(AngleDegrees) * static_cast<float>(M_PI) / 180.0f;
+
+			//TargetPosition.x = FuturePosition.x + (Radius * cos(AngleRads));
+			//TargetPosition.z = FuturePosition.z + (Radius * sin(AngleRads));
+
+			//if (IsAtEdge())
+			//	_CurrentVelocity *= -1.0f;
 
 			if (m_IsLeader)
 				m_LeaderPosition = m_position; // static variable stored in all models so they know the player's current position

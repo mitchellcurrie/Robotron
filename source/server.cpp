@@ -31,8 +31,8 @@
 #include "server.h"
 
 std::string CServer::m_sNewestClientName = "";
-std::clock_t CServer::m_start;
-double CServer::m_duration = 0;
+std::clock_t CServer::m_start = std::clock();
+double CServer::m_duration = 0.0f;
 int CServer::m_iNumberOfConnectedPlayers = 0;
 // std::mutex mutexlock;
 
@@ -87,25 +87,25 @@ bool CServer::AddClient(TClientDetails _clientDetails) {
 	TPacket _packet;
 
 	if (m_iNumberOfConnectedPlayers == 0) {
-		_packet.Serialize(HANDSHAKE, "Server", "P1");
+		_packet.SerializeMessage(HANDSHAKE, "Server", "P1");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P1", _clientDetails));
 		m_sNewestClientName = "P1";
 	}
 
 	else if (m_iNumberOfConnectedPlayers == 1) {
-		_packet.Serialize(HANDSHAKE, "Server", "P2");
+		_packet.SerializeMessage(HANDSHAKE, "Server", "P2");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P2", _clientDetails));
 		m_sNewestClientName = "P2";
 	}
 
 	else if (m_iNumberOfConnectedPlayers == 2) {
-		_packet.Serialize(HANDSHAKE, "Server", "P3");
+		_packet.SerializeMessage(HANDSHAKE, "Server", "P3");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P3", _clientDetails));
 		m_sNewestClientName = "P3";
 	}
 
 	else if (m_iNumberOfConnectedPlayers == 3) {
-		_packet.Serialize(HANDSHAKE, "Server", "P4");
+		_packet.SerializeMessage(HANDSHAKE, "Server", "P4");
 		m_connectedClients.insert(std::pair<std::string, TClientDetails>("P4", _clientDetails));
 		m_sNewestClientName = "P4";
 	}
@@ -289,7 +289,7 @@ void CServer::ProcessData(char* _pcDataReceived) {
 
 	TPacket _packetRecvd, _packetSent;
 
-	_packetRecvd = _packetRecvd.Deserialize(_pcDataReceived);
+	_packetRecvd = _packetRecvd.DeserializeMessage(_pcDataReceived);
 
 	TClientDetails ClientDetails;
 	ClientDetails.m_ClientAddress = m_ClientAddress;
@@ -309,7 +309,7 @@ void CServer::ProcessData(char* _pcDataReceived) {
 			if (!(AddClient(ClientDetails))) {
 				SetColor(RED);
 				std::cout << "<< HANDSHAKE denied" << std::endl;
-				_packetSent.Serialize(HANDSHAKE, "SERVER", "DENIED");
+				_packetSent.SerializeMessage(HANDSHAKE, "SERVER", "DENIED");
 				SendDataTo(_packetSent.PacketData, m_ClientAddress);
 			}
 			else {
@@ -324,51 +324,108 @@ void CServer::ProcessData(char* _pcDataReceived) {
 		}
 		case DATA:
 		{
-			_packetSent.Serialize(DATA, _packetRecvd.Name, _packetRecvd.MessageContent);
+			_packetSent.SerializeMessage(DATA, _packetRecvd.Name, _packetRecvd.MessageContent);
 			SendDataToAll(_packetSent.PacketData);
+			break;
+		}
+		case POSITION_B:
+		{
+			_packetSent = _packetSent.DeserializeBullets(_pcDataReceived);
+			ClientDetails.m_strName = _packetSent.Name;
+
+			if (ClientDetails.m_strName == "P1") {
+			
+				for (int i = 0; i < 10; i++) {
+
+					m_player1Bullets[i]->SetPosition(glm::vec3(_packetSent.Bullets[i].position));
+					m_player1Bullets[i]->SetActivity(_packetSent.Bullets[i].bIsActive);
+				}
+			}
+
+			else if (ClientDetails.m_strName == "P2") {
+
+				for (int i = 0; i < 10; i++) {
+
+					m_player2Bullets[i]->SetPosition(glm::vec3(_packetSent.Bullets[i].position));
+					m_player2Bullets[i]->SetActivity(_packetSent.Bullets[i].bIsActive);
+				}
+			}
+
+			else if (ClientDetails.m_strName == "P3") {
+
+				for (int i = 0; i < 10; i++) {
+
+					m_player3Bullets[i]->SetPosition(glm::vec3(_packetSent.Bullets[i].position));
+					m_player3Bullets[i]->SetActivity(_packetSent.Bullets[i].bIsActive);
+				}
+			}
+
+			else if (ClientDetails.m_strName == "P4") {
+
+				for (int i = 0; i < 10; i++) {
+
+					m_player4Bullets[i]->SetPosition(glm::vec3(_packetSent.Bullets[i].position));
+					m_player4Bullets[i]->SetActivity(_packetSent.Bullets[i].bIsActive);
+				}
+			}
+
+			if (m_pPlayer1->IsActive()) {
+				SendP1BulletPositions();
+				Sleep(30);
+			}
+			if (m_pPlayer2->IsActive()) {
+				SendP2BulletPositions();
+				Sleep(30);
+			}
+			if (m_pPlayer3->IsActive()) {
+				SendP3BulletPositions();
+				Sleep(30);
+			}
+			if (m_pPlayer4->IsActive()) {
+				SendP4BulletPositions();
+				Sleep(30);
+			}
+
 			break;
 		}
 		case POSITION_P:
 		{
-			_packetRecvd = _packetRecvd.DeserializePosition(_pcDataReceived);
 
-			//////////////   OPTION 1   /////////////////////
+				_packetSent = _packetSent.DeserializePosition(_pcDataReceived);
 
-			if (ClientDetails.m_strName == "P1") {
-				m_pPlayer1->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
-				m_pPlayer1->SetActivity(true);
-			}
+				//////////////   OPTION 1   /////////////////////
 
-			else if (ClientDetails.m_strName == "P2") {
-				m_pPlayer2->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
-				m_pPlayer2->SetActivity(true);
-			}
+				if (ClientDetails.m_strName == "P1") {
+					m_pPlayer1->SetPosition(vec3(_packetSent.Position.x, 0.0f, _packetSent.Position.z));
+					m_pPlayer1->SetActivity(true);
+				}
 
-			else if (ClientDetails.m_strName == "P3") {
-				m_pPlayer3->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
-				m_pPlayer3->SetActivity(true);
-			}
+				else if (ClientDetails.m_strName == "P2") {
+					m_pPlayer2->SetPosition(vec3(_packetSent.Position.x, 0.0f, _packetSent.Position.z));
+					m_pPlayer2->SetActivity(true);
+				}
 
-			else if (ClientDetails.m_strName == "P4") {
-				m_pPlayer4->SetPosition(vec3(_packetRecvd.Position.x, _packetRecvd.Position.y, _packetRecvd.Position.z));
-				m_pPlayer4->SetActivity(true);
-			}
+				else if (ClientDetails.m_strName == "P3") {
+					m_pPlayer3->SetPosition(vec3(_packetSent.Position.x, 0.0f, _packetSent.Position.z));
+					m_pPlayer3->SetActivity(true);
+				}
 
-			SendPlayerPositions();
-			SendEnemyPositions();
+				else if (ClientDetails.m_strName == "P4") {
+					m_pPlayer4->SetPosition(vec3(_packetSent.Position.x, 0.0f, _packetSent.Position.z));
+					m_pPlayer4->SetActivity(true);
+				}
 
-			//////////////   OPTION 2   /////////////////////
+				SendPlayerPositions();
 
-			//_packetSent.SerializePosition(POSITION, _packetRecvd.Name, _packetRecvd.MessageContent, _packetRecvd.Position);
-			//  //                                           "P2"                  "-"                      x y z
-			//SendDataToAll(_packetSent.PacketData);
+				Sleep(10);
 
-			////////////////////////////////////////////////////
+				SendEnemyPositions();
 
-			// Need to move this somewhere else after collisions added
-			/*_packetSent.SerializePosition(POSITION, _packetRecvd.Name, _packetRecvd.MessageContent, _packetRecvd.Position);
-			SendDataToAll(_packetSent.PacketData);*/
+				Sleep(10);
 
+				SendPowerUpPosition();
+
+				Sleep(10);
 
 			break;
 		}
@@ -379,13 +436,13 @@ void CServer::ProcessData(char* _pcDataReceived) {
 			switch (Command) {
 				case 'A':
 				{
-					_packetSent.Serialize(COMMAND, _packetRecvd.Name, "!A");
+					_packetSent.SerializeMessage(COMMAND, _packetRecvd.Name, "!A");
 					SendDataToAll(_packetSent.PacketData);
 
 					m_iActivePlayers++;
 
 					if (m_iActivePlayers == 2) {
-						_packetSent.Serialize(COMMAND, _packetRecvd.Name, "!G");
+						_packetSent.SerializeMessage(COMMAND, _packetRecvd.Name, "!G");
 						SendDataToAll(_packetSent.PacketData);
 						m_bGameStarted = true;
 					}
@@ -417,7 +474,6 @@ void CServer::ProcessData(char* _pcDataReceived) {
 
 			break;
 		}
-
 		case BROADCAST:
 		{
 			char IP[MAX_ADDRESS_LENGTH];
@@ -425,7 +481,7 @@ void CServer::ProcessData(char* _pcDataReceived) {
 
 			SetColor(TEAL);
 			std::cout << ">> BROADCAST request received from " << IP << ":" << GetRemotePort() << std::endl;
-			_packetSent.Serialize(BROADCAST, _packetRecvd.Name, "I'm here!");
+			_packetSent.SerializeMessage(BROADCAST, _packetRecvd.Name, "I'm here!");
 			SendData(_packetSent.PacketData);
 			SetColor(GRAY);
 			break;
@@ -510,6 +566,40 @@ void CServer::CreateEntities() {
 		AddEnemy(m_pEnemy);
 		m_pEnemy->SetActivity(false);
 	}
+
+	m_pPowerUp = new PowerUp;
+	m_pPowerUp->SetActivity(false);
+
+	for (int x{ 0 }; x < 10; x++) {
+
+		m_pBullet = new Bullet;
+		m_pBullet->SetActivity(false);
+		m_player1Bullets.push_back(m_pBullet);
+	}
+
+
+	for (int x{ 0 }; x < 10; x++) {
+
+		m_pBullet = new Bullet;
+		m_pBullet->SetActivity(false);
+		m_player2Bullets.push_back(m_pBullet);
+	}
+
+
+	for (int x{ 0 }; x < 10; x++) {
+
+		m_pBullet = new Bullet;
+		m_pBullet->SetActivity(false);
+		m_player3Bullets.push_back(m_pBullet);
+	}
+
+
+	for (int x{ 0 }; x < 10; x++) {
+
+		m_pBullet = new Bullet;
+		m_pBullet->SetActivity(false);
+		m_player4Bullets.push_back(m_pBullet);
+	}
 }
 
 void CServer::AddPlayer(Player* _player) {
@@ -553,14 +643,57 @@ Player* CServer::GetPlayer(std::string _player) {
 void CServer::SendPlayerPositions() {
 
 	TPacket _packetToSend;
-	_packetToSend.SerializePosition(POSITION_P, GetPlayer("P1")->GetPosition(), GetPlayer("P2")->GetPosition(), GetPlayer("P3")->GetPosition(), GetPlayer("P4")->GetPosition());
+	//_packetToSend.SerializePlayerPositions(POSITION_P, GetPlayer("P1")->GetPosition(), GetPlayer("P2")->GetPosition(), GetPlayer("P3")->GetPosition(), GetPlayer("P4")->GetPosition());
+	_packetToSend.SerializePlayerPositions(POSITION_P, (*GetPlayer("P1")), (*GetPlayer("P2")), (*GetPlayer("P3")), (*GetPlayer("P4")));
 	SendDataToAll(_packetToSend.PacketData);
+
 }
 
 void CServer::SendEnemyPositions() {
 
 	TPacket _packetToSend;
-	_packetToSend.SerializeEnemies(POSITION_E, m_enemies[0], m_enemies[1], m_enemies[2], m_enemies[3], m_enemies[4], m_enemies[5], m_enemies[6], m_enemies[7]);
+	_packetToSend.SerializeEnemies(POSITION_E, (*m_enemies[0]), (*m_enemies[1]), (*m_enemies[2]), (*m_enemies[3]), (*m_enemies[4]), (*m_enemies[5]), (*m_enemies[6]), (*m_enemies[7]));
+	SendDataToAll(_packetToSend.PacketData);
+
+}
+
+void CServer::SendPowerUpPosition() {
+
+	TPacket _packetToSend;
+	_packetToSend.SerializePowerUp(POSITION_PU, (*m_pPowerUp));
+	SendDataToAll(_packetToSend.PacketData);
+
+}
+
+void CServer::SendP1BulletPositions() {
+
+	TPacket _packetToSend;
+	_packetToSend.SerializeBullets(POSITION_B, "P1", (*m_player1Bullets[0]), (*m_player1Bullets[1]), (*m_player1Bullets[2]), (*m_player1Bullets[3]), (*m_player1Bullets[4]), (*m_player1Bullets[5]), (*m_player1Bullets[6]),
+		(*m_player1Bullets[7]), (*m_player1Bullets[8]), (*m_player1Bullets[9]));
+	SendDataToAll(_packetToSend.PacketData);
+}
+
+void CServer::SendP2BulletPositions() {
+
+	TPacket _packetToSend;
+	_packetToSend.SerializeBullets(POSITION_B, "P2", (*m_player2Bullets[0]), (*m_player2Bullets[1]), (*m_player2Bullets[2]), (*m_player2Bullets[3]), (*m_player2Bullets[4]), (*m_player2Bullets[5]), (*m_player2Bullets[6]),
+		(*m_player2Bullets[7]), (*m_player2Bullets[8]), (*m_player2Bullets[9]));
+	SendDataToAll(_packetToSend.PacketData);
+}
+
+void CServer::SendP3BulletPositions() {
+
+	TPacket _packetToSend;
+	_packetToSend.SerializeBullets(POSITION_B, "P3", (*m_player3Bullets[0]), (*m_player3Bullets[1]), (*m_player3Bullets[2]), (*m_player3Bullets[3]), (*m_player3Bullets[4]), (*m_player3Bullets[5]), (*m_player3Bullets[6]),
+		(*m_player3Bullets[7]), (*m_player3Bullets[8]), (*m_player3Bullets[9]));
+	SendDataToAll(_packetToSend.PacketData);
+}
+
+void CServer::SendP4BulletPositions() {
+
+	TPacket _packetToSend;
+	_packetToSend.SerializeBullets(POSITION_B, "P4", (*m_player4Bullets[0]), (*m_player4Bullets[1]), (*m_player4Bullets[2]), (*m_player4Bullets[3]), (*m_player4Bullets[4]), (*m_player4Bullets[5]), (*m_player4Bullets[6]),
+		(*m_player4Bullets[7]), (*m_player4Bullets[8]), (*m_player4Bullets[9]));
 	SendDataToAll(_packetToSend.PacketData);
 }
 
@@ -572,7 +705,19 @@ std::vector<Enemy*> CServer::GetEnemies() {
 	return m_enemies;
 }
 
-void CServer::SetEnemies(std::vector<Enemy*> _enemies) {
+void CServer::SetEnemies(std::vector<Enemy> _enemies) {
 
-	m_enemies = _enemies;
+	//for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
+	for (int y{ 0 }; y < 8; y++) {
+
+		m_enemies[y]->SetPosition(_enemies[y].GetPosition());
+		m_enemies[y]->SetActivity(_enemies[y].IsActive());
+	}
+
+}
+
+void CServer::SetPowerUp(PowerUp _powerup) {
+
+	m_pPowerUp->SetPosition(_powerup.GetPosition());
+	m_pPowerUp->SetActivity(_powerup.IsActive());
 }

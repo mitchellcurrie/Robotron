@@ -48,7 +48,7 @@ bool CSocket::Initialise(char* _pcIPAddress, unsigned short _usPortNumber) {
 		return false;
 	}
 	else {
-		std::cout << "Successfully created the socket" << std::endl;
+		//std::cout << "Successfully created the socket" << std::endl;
 	}
 
 	// now bind the socket to the address and port number supplied.
@@ -69,7 +69,8 @@ bool CSocket::Initialise(char* _pcIPAddress, unsigned short _usPortNumber) {
 	}
 	
 	// Fixed the broadcasting (IDK HOW)
-	std::cout << "Successfully bound the socket " << "to " << GetLocalAddress() << ":" << _usPortNumber << std::endl;
+	GetLocalAddress();
+	//std::cout << "Successfully bound the socket " << "to " << GetLocalAddress() << ":" << _usPortNumber << std::endl;
 
 	return true;
 

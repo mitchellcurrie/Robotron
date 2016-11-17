@@ -74,6 +74,11 @@ public:
 	bool IsActive(std::string _player);
 	glm::vec3 GetPosition(std::string _playerName);
 	std::vector<Enemy*> GetEnemies();
+	PowerUp* GetPowerUp();
+	std::vector<Bullet*> GetP1Bullets();
+	std::vector<Bullet*> GetP2Bullets();
+	std::vector<Bullet*> GetP3Bullets();
+	std::vector<Bullet*> GetP4Bullets();
 
 	void SetCollision(bool _b);
 	bool HasCollided();
@@ -120,6 +125,12 @@ private:
 
 	std::vector<Enemy*> m_enemies;
 	Enemy* m_pEnemy;
+
+	PowerUp* m_pPowerUp;
+
+	Bullet* m_pBullet;
+
+	std::vector<Bullet*> m_player1Bullets, m_player2Bullets, m_player3Bullets, m_player4Bullets;
 
 };
 

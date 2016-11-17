@@ -30,29 +30,28 @@
 struct Player
 {
 	// Variables
-	glm::vec3 m_Position;
-	bool m_bIsActive;
+	glm::vec3 position;
+	bool bIsActive;
 	char* m_name;
 
 	// Functions
 	void SetPosition(glm::vec3 _position){
-		m_Position = _position;
+		position = _position;
 	}
 
 	glm::vec3 GetPosition() {
-		return m_Position;
+		return position;
 	}
 
 	void SetActivity(bool _b) {
-		m_bIsActive = _b;
+		bIsActive = _b;
 	}
 
 	bool IsActive() {
-		return m_bIsActive;
+		return bIsActive;
 	}
 
 	void SetName(char* _name) {
-	//	strcpy_s(m_name, strlen(_name) + 1, _name);
 		m_name = _name;
 	}
 
@@ -62,25 +61,77 @@ struct Player
 };
 
 struct Enemy {
+
+public:
 	// Variables
-	glm::vec3 m_Position;
-	bool m_bIsActive;
+	glm::vec3 position;
+	bool bIsActive;
 
 	// Functions
 	void SetPosition(glm::vec3 _position) {
-		m_Position = _position;
+		position = _position;
 	}
 
 	glm::vec3 GetPosition() {
-		return m_Position;
+		return position;
 	}
 
 	void SetActivity(bool _b) {
-		m_bIsActive = _b;
+		bIsActive = _b;
 	}
 
 	bool IsActive() {
-		return m_bIsActive;
+		return bIsActive;
+	}
+};
+
+struct PowerUp {
+
+public:
+	// Variables
+	glm::vec3 position;
+	bool bIsActive;
+
+	// Functions
+	void SetPosition(glm::vec3 _position) {
+		position = _position;
+	}
+
+	glm::vec3 GetPosition() {
+		return position;
+	}
+
+	void SetActivity(bool _b) {
+		bIsActive = _b;
+	}
+
+	bool IsActive() {
+		return bIsActive;
+	}
+};
+
+struct Bullet {
+
+public:
+	// Variables
+	glm::vec3 position;
+	bool bIsActive;
+
+	// Functions
+	void SetPosition(glm::vec3 _position) {
+		position = _position;
+	}
+
+	glm::vec3 GetPosition() {
+		return position;
+	}
+
+	void SetActivity(bool _b) {
+		bIsActive = _b;
+	}
+
+	bool IsActive() {
+		return bIsActive;
 	}
 };
 

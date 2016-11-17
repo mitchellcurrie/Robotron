@@ -30,8 +30,8 @@
 unsigned char Entity::keyState[255];
 
 // Static variables
-//std::clock_t Entity::m_start = std::clock();
-//double Entity::m_duration = 0.0f;
+std::clock_t Entity::m_Playerstart = std::clock();
+double Entity::m_Playerduration = 0.0f;
 
 std::clock_t Entity::m_P1start = std::clock();
 double Entity::m_P1duration = 0.0f;
@@ -56,18 +56,17 @@ bool Entity::m_bLeaderDead = false;
 int Entity::m_iEnemyBulletCounter = 0;
 int Entity::m_iEnemyCounter = 0;
 
+bool Entity::m_bPlayerBulletFired = false;
 bool Entity::m_bP1BulletFired = false;
 bool Entity::m_bP2BulletFired = false;
 bool Entity::m_bP3BulletFired = false;
 bool Entity::m_bP4BulletFired = false;
 
+int Entity::m_iPlayerBulletCounter = 0;
 int Entity::m_iPlayer1BulletCounter = 0;
 int Entity::m_iPlayer2BulletCounter = 0;
 int Entity::m_iPlayer3BulletCounter = 0;
 int Entity::m_iPlayer4BulletCounter = 0;
-
-
-
 
 Entity::Entity() {
 	m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
@@ -225,49 +224,49 @@ void Entity::SetPositions(float _fDeltaTick) {
 			m_CurrentVelocity = vec3(0.0f, 0.0f, 0.0f);
 		}
 
-		////////////  BULLET Firing ///////////////////////////// Keyboard inputs ///////
+		//////////////  BULLET Firing ///////////////////////////// Keyboard inputs ///////
 
-		if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'i'] == BUTTON_DOWN) ||
-			(keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'l'] == BUTTON_DOWN) ||
-			(keyState[(unsigned char)'J'] == BUTTON_DOWN) || (keyState[(unsigned char)'I'] == BUTTON_DOWN) ||
-			(keyState[(unsigned char)'K'] == BUTTON_DOWN) || (keyState[(unsigned char)'L'] == BUTTON_DOWN)) {
+		//if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'i'] == BUTTON_DOWN) ||
+		//	(keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'l'] == BUTTON_DOWN) ||
+		//	(keyState[(unsigned char)'J'] == BUTTON_DOWN) || (keyState[(unsigned char)'I'] == BUTTON_DOWN) ||
+		//	(keyState[(unsigned char)'K'] == BUTTON_DOWN) || (keyState[(unsigned char)'L'] == BUTTON_DOWN)) {
 
-			if (m_PlayerNumber == P1) {
-				m_P1duration = (std::clock() - m_P1start) / (double)CLOCKS_PER_SEC;
+		//	if (m_PlayerNumber == P1) {
+		//		m_P1duration = (std::clock() - m_P1start) / (double)CLOCKS_PER_SEC;
 
-				if (m_P1duration > m_fFireRate) {
-					m_bP1BulletFired = true;
-					m_P1start = std::clock();
-				}
-			}
+		//		if (m_P1duration > m_fFireRate) {
+		//			m_bP1BulletFired = true;
+		//			m_P1start = std::clock();
+		//		}
+		//	}
 
-			else if (m_PlayerNumber == P2) {
-				m_P2duration = (std::clock() - m_P2start) / (double)CLOCKS_PER_SEC;
+		//	else if (m_PlayerNumber == P2) {
+		//		m_P2duration = (std::clock() - m_P2start) / (double)CLOCKS_PER_SEC;
 
-				if (m_P2duration > m_fFireRate) {
-					m_bP2BulletFired = true;
-					m_P2start = std::clock();
-				}
-			}
+		//		if (m_P2duration > m_fFireRate) {
+		//			m_bP2BulletFired = true;
+		//			m_P2start = std::clock();
+		//		}
+		//	}
 
-			else if (m_PlayerNumber == P3) {
-				m_P3duration = (std::clock() - m_P3start) / (double)CLOCKS_PER_SEC;
+		//	else if (m_PlayerNumber == P3) {
+		//		m_P3duration = (std::clock() - m_P3start) / (double)CLOCKS_PER_SEC;
 
-				if (m_P3duration > m_fFireRate) {
-					m_bP3BulletFired = true;
-					m_P3start = std::clock();
-				}
-			}
+		//		if (m_P3duration > m_fFireRate) {
+		//			m_bP3BulletFired = true;
+		//			m_P3start = std::clock();
+		//		}
+		//	}
 
-			else if (m_PlayerNumber == P4) {
-				m_P4duration = (std::clock() - m_P4start) / (double)CLOCKS_PER_SEC;
+		//	else if (m_PlayerNumber == P4) {
+		//		m_P4duration = (std::clock() - m_P4start) / (double)CLOCKS_PER_SEC;
 
-				if (m_P4duration > m_fFireRate) {
-					m_bP4BulletFired = true;
-					m_P4start = std::clock();
-				}
-			}
-		}
+		//		if (m_P4duration > m_fFireRate) {
+		//			m_bP4BulletFired = true;
+		//			m_P4start = std::clock();
+		//		}
+		//	}
+		//}
 
 		m_CurrentPlayerVelocity = m_CurrentVelocity;
 	}
@@ -275,6 +274,7 @@ void Entity::SetPositions(float _fDeltaTick) {
 	////////////// Enemy movement   /////////////////////  AI algorithms   /////////////////
 
 	else if (m_EntityType == ENEMY) {
+
 		if (m_bIsFleeing) {
 			Flee(m_pModel->GetPlayerPosition());
 		}
@@ -475,6 +475,77 @@ void Entity::SetPositions(float _fDeltaTick) {
 
 	else if ((m_EntityType == POWERUP) && (m_bActive)) {
 		Wander();
+	}
+}
+
+void Entity::SetBulletPositions(float _fDeltaTick) {
+
+	if (m_EntityType == PLAYER) {
+
+		/*if (m_PlayerNumber == P1)
+			m_bP1BulletFired = false;
+
+		else if (m_PlayerNumber == P2)
+			m_bP2BulletFired = false;
+
+		else if (m_PlayerNumber == P3)
+			m_bP3BulletFired = false;
+
+		else if (m_PlayerNumber == P4)
+			m_bP4BulletFired = false;*/
+
+		m_bPlayerBulletFired = false;
+
+		////////////  BULLET Firing ///////////////////////////// Keyboard inputs ///////
+
+		if ((keyState[(unsigned char)'j'] == BUTTON_DOWN) || (keyState[(unsigned char)'i'] == BUTTON_DOWN) ||
+			(keyState[(unsigned char)'k'] == BUTTON_DOWN) || (keyState[(unsigned char)'l'] == BUTTON_DOWN) ||
+			(keyState[(unsigned char)'J'] == BUTTON_DOWN) || (keyState[(unsigned char)'I'] == BUTTON_DOWN) ||
+			(keyState[(unsigned char)'K'] == BUTTON_DOWN) || (keyState[(unsigned char)'L'] == BUTTON_DOWN)) {
+
+				m_Playerduration = (std::clock() - m_Playerstart) / (double)CLOCKS_PER_SEC;
+
+				if (m_Playerduration > m_fFireRate) {
+					m_bPlayerBulletFired = true;
+					m_Playerstart = std::clock();
+				}
+
+			//if (m_PlayerNumber == P1) {
+			//	m_P1duration = (std::clock() - m_P1start) / (double)CLOCKS_PER_SEC;
+
+			//	if (m_P1duration > m_fFireRate) {
+			//		m_bP1BulletFired = true;
+			//		m_P1start = std::clock();
+			//	}
+			//}
+
+			//else if (m_PlayerNumber == P2) {
+			//	m_P2duration = (std::clock() - m_P2start) / (double)CLOCKS_PER_SEC;
+
+			//	if (m_P2duration > m_fFireRate) {
+			//		m_bP2BulletFired = true;
+			//		m_P2start = std::clock();
+			//	}
+			//}
+
+			//else if (m_PlayerNumber == P3) {
+			//	m_P3duration = (std::clock() - m_P3start) / (double)CLOCKS_PER_SEC;
+
+			//	if (m_P3duration > m_fFireRate) {
+			//		m_bP3BulletFired = true;
+			//		m_P3start = std::clock();
+			//	}
+			//}
+
+			//else if (m_PlayerNumber == P4) {
+			//	m_P4duration = (std::clock() - m_P4start) / (double)CLOCKS_PER_SEC;
+
+			//	if (m_P4duration > m_fFireRate) {
+			//		m_bP4BulletFired = true;
+			//		m_P4start = std::clock();
+			//	}
+			//}
+		}
 	}
 }
 
@@ -751,10 +822,9 @@ EntityType Entity::GetEntityType() {
 	return m_EntityType;
 }
 
-//bool Entity::IsBulletFired()
-//{
-//	return m_bBulletFired;
-//}
+bool Entity::IsPlayerBulletFired(){
+	return m_bPlayerBulletFired;
+}
 
 bool Entity::IsP1BulletFired() {
 	return m_bP1BulletFired;
@@ -888,6 +958,10 @@ void Entity::SetModelPosition(vec3 _position) {
 	m_pModel->SetPosition(_position);
 }
 
+void Entity::SetPlayerBulletFired(bool _b) {
+	m_bPlayerBulletFired = _b;
+}
+
 void Entity::SetP1BulletFired(bool _b) {
 	m_bP1BulletFired = _b;
 }
@@ -926,10 +1000,10 @@ int Entity::GetPlayer4BulletCounter() {
 //	m_bBulletFired = _b;
 //}
 //
-//int Entity::GetPlayerBulletCounter()
-//{
-//	return m_iPlayerBulletCounter;
-//}
+int Entity::GetPlayerBulletCounter()
+{
+	return m_iPlayerBulletCounter;
+}
 
 int Entity::GetEnemyBulletCounter() {
 	return m_iEnemyBulletCounter;
@@ -939,14 +1013,14 @@ int Entity::GetEnemyCounter() {
 	return m_iEnemyCounter;
 }
 
-//void Entity::IncrementPlayerBulletCounter()
-//{
-//	if (m_iPlayerBulletCounter == 9)
-//		m_iPlayerBulletCounter = 0;
-//
-//	else
-//		m_iPlayerBulletCounter++;
-//}
+void Entity::IncrementPlayerBulletCounter()
+{
+	if (m_iPlayerBulletCounter == 9)
+		m_iPlayerBulletCounter = 0;
+
+	else
+		m_iPlayerBulletCounter++;
+}
 
 void Entity::IncrementPlayer1BulletCounter() {
 	if (m_iPlayer1BulletCounter == 9)

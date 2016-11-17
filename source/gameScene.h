@@ -55,6 +55,7 @@ public:
 	void AddCamera(Camera _camera);
 	void AddEntity(Entity* _entity);
 	void AddEnemy(Entity* _enemy);
+	void AddPlayerBullet(Entity* _entity);
 	void AddPlayer1Bullet(Entity* _entity);
 	void AddPlayer2Bullet(Entity* _entity);
 	void AddPlayer3Bullet(Entity* _entity);
@@ -70,7 +71,8 @@ public:
 	void CreateTextFields();
 	void CreateEntities();
 	void UpdateEntities();
-	void CheckCollisions();
+	void CheckEnemyOnEnemyCollisions();
+	void CheckPlayerOnEnemyCollisions();
 	void CheckBullets();
 	void CheckEnemies();
 	void CheckPowerUps();
@@ -136,6 +138,8 @@ public:
 	//	void ExecuteOneFrame();
 
 	void UpdateEnemiesForClient();
+	void UpdatePowerUpsForClient();
+	void UpdateBulletsForClient();
 
 protected:
 	CClock* m_pClock;
@@ -157,12 +161,15 @@ private:
 	static std::clock_t m_startEnemyFleeTimer;
 	static double m_durationEnemyFleeTimer;
 
+	static std::clock_t m_startClientSendingTimer;
+	static double m_durationClientSendingTimer;
+
 	static int m_iExtraEnemies;
 	Camera m_Camera;
 
 	// Vectors
 	std::vector<TextLabel*> m_textLabels;
-	std::vector<Entity*> m_entities, m_players, m_enemies, m_player1Bullets, m_player2Bullets, m_player3Bullets, m_player4Bullets, m_enemyBullets, m_powerUps;
+	std::vector<Entity*> m_entities, m_players, m_enemies, m_playerBullets, m_player1Bullets, m_player2Bullets, m_player3Bullets, m_player4Bullets, m_enemyBullets, m_powerUps;
 
 	// Pointers
 	Entity* m_pBullet;
@@ -230,6 +237,8 @@ private:
 	TPacket m_packet;
 	std::string username;
 	char* usernameC;
+
+	bool m_bUpdateEntities;
 
 //	std::mutex EnemiesMutex;
 

@@ -47,6 +47,9 @@ std::clock_t GameScene::m_startEnemyFleeTimer = std::clock();
 double GameScene::m_durationEnemyFleeTimer = 0.0f;
 int GameScene::m_iExtraEnemies = 0;
 
+std::clock_t GameScene::m_startClientSendingTimer = std::clock();
+double GameScene::m_durationClientSendingTimer = 0.0f;
+
 // MENU
 int GameScene::m_iCursorIndex = 0;
 const int MENU_CHOICES = 3;   // changed from CHOICES
@@ -61,12 +64,13 @@ int GameScene::m_iClientChoices = 0;
 GameScene::GameScene() :
 	m_iWidth(0),
 	m_iHeight(0),
-	m_iCurrentLevel(1),
+	m_iCurrentLevel(3),
 	m_bLevelComplete(false),
 	m_iPlayerLives(3),
 	m_fDeltaTick(0.0f),
 	m_iScore(0),
-	m_iScoreCounter(0) {
+	m_iScoreCounter(0),
+	m_bUpdateEntities(false) {
 
 	m_iGameState = MENU;
 
@@ -137,7 +141,7 @@ void GameScene::SetUp(int _iWidth, int _iHeight) {
 
 	AddCamera(Camera);
 	CreateEntities();
-	UpdateEntities();
+	//	UpdateEntities();
 	CreateTextFields();
 	GetClock()->Initialise();
 
@@ -157,6 +161,11 @@ void GameScene::SetUp(int _iWidth, int _iHeight) {
 * Return: void
 ********************/
 void GameScene::CreateEntities() {
+
+	// Map Quad
+	m_pMap = new Entity;
+	m_pMap->Initialise(MAP, QUAD, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Assets//Textures//Map.jpg");
+	AddEntity(m_pMap);
 
 	// Player Cubes
 	m_pPlayer1 = new Entity;
@@ -187,12 +196,7 @@ void GameScene::CreateEntities() {
 	//m_pPlayer4->SetActivity(true);
 	AddPlayer(m_pPlayer4);
 
-	// Map Quad
-	m_pMap = new Entity;
-	m_pMap->Initialise(MAP, QUAD, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Assets//Textures//Map.jpg");
-	AddEntity(m_pMap);
-
-	// Player 1 Bullets
+//	 Player 1 Bullets
 	for (int x{ 0 }; x < 10; x++) {
 		m_pBullet = new Entity;
 		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Assets//Textures//PlayerBullet.png");
@@ -224,20 +228,20 @@ void GameScene::CreateEntities() {
 		AddPlayer4Bullet(m_pBullet);
 	}
 
-	//// Player Bullets
-	//for (int x{ 0 }; x < 10; x++) {
-	//	m_pBullet = new Entity;
-	//	m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Assets//Textures//PlayerBullet.png");
-	//	AddPlayerBullet(m_pBullet);
-	//}
+	// Player Bullets
+	for (int x{ 0 }; x < 10; x++) {
+		m_pBullet = new Entity;
+		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Assets//Textures//PlayerBullet.png");
+		AddPlayerBullet(m_pBullet);
+	}
 
 	// Enemy Bullets
-	for (int y{ 0 }; y < 40; y++) {
-		m_pBullet = new Entity;
-		m_pBullet->SetAsEnemyBullet();
-		m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Assets//Textures//EnemyBullet.png");
-		AddEnemyBullet(m_pBullet);
-	}
+	//for (int y{ 0 }; y < 40; y++) {
+	//	m_pBullet = new Entity;
+	//	m_pBullet->SetAsEnemyBullet();
+	//	m_pBullet->Initialise(BULLET, DOT, 6, m_Camera, vec3(0.0f, 0.0f, 0.0f), NONENEMY, 0.0f, "Assets//Textures//EnemyBullet.png");
+	//	AddEnemyBullet(m_pBullet);
+	//}
 
 	////////////////// Enemies //////////////////////////////////
 
@@ -266,9 +270,7 @@ void GameScene::CreateEntities() {
 	AddEnemy(m_pEnemy);
 
 	// 6
-	m_pEnemy = new Entity;
-	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-6.0f, 0.0f, -5.0f), WANDER, fMaxVelocity, "Assets//Textures//EnemyTexture.jpg");
-	AddEnemy(m_pEnemy);
+
 
 	m_pEnemy = new Entity;
 	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(0.0f, 0.0f, 0.0f), WANDER, fMaxVelocity, "Assets//Textures//EnemyTexture.jpg");
@@ -276,6 +278,10 @@ void GameScene::CreateEntities() {
 
 	m_pEnemy = new Entity;
 	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-2.0f, 0.0f, -2.0f), WANDER, fMaxVelocity, "Assets//Textures//EnemyTexture.jpg");
+	AddEnemy(m_pEnemy);
+
+	m_pEnemy = new Entity;
+	m_pEnemy->Initialise(ENEMY, CUBE, 36, m_Camera, vec3(-6.0f, 0.0f, -5.0f), WANDER, fMaxVelocity, "Assets//Textures//EnemyTexture.jpg");
 	AddEnemy(m_pEnemy);
 
 	//m_pEnemy = new Entity;
@@ -323,10 +329,10 @@ void GameScene::CreateEntities() {
 
 	// Power Ups
 
-	//m_pPowerUp = new Entity;
-	//m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f, "Assets//Textures//GreenPattern.png");
-	//m_pPowerUp->SetPowerUpType(SPEEDBOOST);
-	//AddPowerUp(m_pPowerUp);
+	m_pPowerUp = new Entity;
+	m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f, "Assets//Textures//GreenPattern.png");
+	m_pPowerUp->SetPowerUpType(SPEEDBOOST);
+	AddPowerUp(m_pPowerUp);
 
 	//m_pPowerUp = new Entity;
 	//m_pPowerUp->Initialise(POWERUP, PYRAMID, 18, m_Camera, vec3(-2.5f, 0.0f, -2.0f), NONENEMY, 0.03f, "Assets//Textures//PinkPattern.png");
@@ -519,10 +525,6 @@ void GameScene::CreateTextFields() {
 #pragma endregion CREATE
 
 #pragma region SETTERS
-//void GameScene::SetPlayerAlive() {
-//	m_pPlayer->SetToAlive();
-//}
-
 void GameScene::SetLevel(int _iLevel) {
 	m_iCurrentLevel = _iLevel;
 }
@@ -532,10 +534,7 @@ void GameScene::SetLevelComplete(bool _IsComplete) {
 }
 
 void GameScene::SetAllBulletsInactive() {
-	//for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++) {
-	//	(*it)->SetActivity(false);
-	//	//(*it)->ResetVelocityForBullets();		
-	//}
+
 	for (auto it = m_player1Bullets.begin(); it != m_player1Bullets.end(); it++) {
 		(*it)->SetActive(false);
 		//(*it)->ResetVelocityForBullets();		
@@ -576,6 +575,10 @@ void GameScene::AddPlayer(Entity* _entity) {
 
 void GameScene::AddEnemy(Entity* _entity) {
 	m_enemies.push_back(_entity);
+}
+
+void GameScene::AddPlayerBullet(Entity* _entity) {
+	m_playerBullets.push_back(_entity);
 }
 
 void GameScene::AddPlayer1Bullet(Entity* _entity) {
@@ -693,37 +696,37 @@ void GameScene::SetPositions(float _fDeltaTick) {
 	}
 
 	//Player Bullets
-	for (auto it = m_player1Bullets.begin(); it != m_player1Bullets.end(); it++) {
-		if ((*it)->IsActive())
-			(*it)->SetPositions(_fDeltaTick);
-	}
+	//for (auto it = m_player1Bullets.begin(); it != m_player1Bullets.end(); it++) {
+	//	if ((*it)->IsActive())
+	//		(*it)->SetPositions(_fDeltaTick);
+	//}
 
-	for (auto it = m_player2Bullets.begin(); it != m_player2Bullets.end(); it++) {
-		if ((*it)->IsActive())
-			(*it)->SetPositions(_fDeltaTick);
-	}
+	//for (auto it = m_player2Bullets.begin(); it != m_player2Bullets.end(); it++) {
+	//	if ((*it)->IsActive())
+	//		(*it)->SetPositions(_fDeltaTick);
+	//}
 
-	for (auto it = m_player3Bullets.begin(); it != m_player3Bullets.end(); it++) {
-		if ((*it)->IsActive())
-			(*it)->SetPositions(_fDeltaTick);
-	}
+	//for (auto it = m_player3Bullets.begin(); it != m_player3Bullets.end(); it++) {
+	//	if ((*it)->IsActive())
+	//		(*it)->SetPositions(_fDeltaTick);
+	//}
 
-	for (auto it = m_player4Bullets.begin(); it != m_player4Bullets.end(); it++) {
-		if ((*it)->IsActive())
-			(*it)->SetPositions(_fDeltaTick);
-	}
+	//for (auto it = m_player4Bullets.begin(); it != m_player4Bullets.end(); it++) {
+	//	if ((*it)->IsActive())
+	//		(*it)->SetPositions(_fDeltaTick);
+	//}
 
-	//Enemy Bullets
-	for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++) {
-		if ((*it)->IsActive())
-			(*it)->SetPositions(_fDeltaTick);
-	}
+	////Enemy Bullets
+	//for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++) {
+	//	if ((*it)->IsActive())
+	//		(*it)->SetPositions(_fDeltaTick);
+	//}
 
 	//Power ups
-	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++) {
-		if ((*it)->IsActive())
-			(*it)->SetPositions(_fDeltaTick);
-	}
+	//for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++) {
+	//	if ((*it)->IsActive())
+	//		(*it)->SetPositions(_fDeltaTick);
+	//}
 }
 
 /***********************
@@ -776,16 +779,16 @@ void GameScene::UpdateEntities() {
 	m_iExtraEnemies = m_iCurrentLevel / 3;
 
 	if (m_iCurrentLevel == 1) {
-		for (int x{ 0 }; x < 7; x++) // Number of enemies
+		for (int x{ 0 }; x < 8; x++) // Number of enemies
 		{
-			m_enemies.at(x)->SetAIBehaviour(FLEE);
+			m_enemies.at(x)->SetAIBehaviour(WANDER);
 			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
 	}
 
 	else if (m_iCurrentLevel == 2) {
-		for (int x{ 0 }; x < 7; x++) {
+		for (int x{ 0 }; x < 8; x++) {
 			m_enemies.at(x)->SetAIBehaviour(EVADE);
 			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
@@ -830,42 +833,42 @@ void GameScene::UpdateEntities() {
 			m_enemies.at(x)->SetActive(true);
 			Entity::IncrementEnemyCounter();
 		}
-	}
+}
 
-	//else // After level 7
-	//{
-	//	float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 375.0f);
-	//	//	float fMaxVelocity = 0.0001f;  // To test positions
-	//	//	float fMaxVelocity = 0.05f;
+//else // After level 7
+//{
+//	float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 375.0f);
+//	//	float fMaxVelocity = 0.0001f;  // To test positions
+//	//	float fMaxVelocity = 0.05f;
 
-	//	for (int x{ 0 }; x < 2; x++) {
-	//		m_enemies.at(x)->SetAIBehaviour(SEEK);
-	//		m_enemies.at(x)->SetActive(true);
-	//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-	//		Entity::IncrementEnemyCounter();
-	//	}
+//	for (int x{ 0 }; x < 2; x++) {
+//		m_enemies.at(x)->SetAIBehaviour(SEEK);
+//		m_enemies.at(x)->SetActive(true);
+//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+//		Entity::IncrementEnemyCounter();
+//	}
 
-	//	for (int x{ 2 }; x < 4; x++) {
-	//		m_enemies.at(x)->SetAIBehaviour(PURSUE);
-	//		m_enemies.at(x)->SetActive(true);
-	//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-	//		Entity::IncrementEnemyCounter();
-	//	}
+//	for (int x{ 2 }; x < 4; x++) {
+//		m_enemies.at(x)->SetAIBehaviour(PURSUE);
+//		m_enemies.at(x)->SetActive(true);
+//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+//		Entity::IncrementEnemyCounter();
+//	}
 
-	//	for (int x{ 4 }; x < 11; x++) {
-	//		m_enemies.at(x)->SetAIBehaviour(WANDER);
-	//		m_enemies.at(x)->SetActive(true);
-	//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-	//		Entity::IncrementEnemyCounter();
-	//	}
+//	for (int x{ 4 }; x < 11; x++) {
+//		m_enemies.at(x)->SetAIBehaviour(WANDER);
+//		m_enemies.at(x)->SetActive(true);
+//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+//		Entity::IncrementEnemyCounter();
+//	}
 
-	//	for (int x{ 11 }; x < 15; x++) {
-	//		m_enemies.at(x)->SetAIBehaviour(FLOCK);
-	//		m_enemies.at(x)->SetActive(true);
-	//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
-	//		Entity::IncrementEnemyCounter();
-	//	}
-	//}
+//	for (int x{ 11 }; x < 15; x++) {
+//		m_enemies.at(x)->SetAIBehaviour(FLOCK);
+//		m_enemies.at(x)->SetActive(true);
+//		m_enemies.at(x)->SetMaxVelocity(fMaxVelocity);
+//		Entity::IncrementEnemyCounter();
+//	}
+//}
 
 /***********************
 * GameScene check bullets: Checks if any bullets need to be activated or deactivated
@@ -994,38 +997,38 @@ void GameScene::CheckBullets() {
 * Return: void
 ********************/
 void GameScene::CheckEnemies() {
+
 	// Extra enemy spawning
-	if ((m_iCurrentLevel > 9) && (m_iExtraEnemies > 0)) {
-		m_durationAITimer = (std::clock() - m_startAITimer) / (double)CLOCKS_PER_SEC;
-		float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 200.0f);
-		float fTimer = 0.0f;
-		float iRandom1 = 0.0f;
-		float iRandom2 = 0.0f;
+	//if ((m_iCurrentLevel > 9) && (m_iExtraEnemies > 0)) {
+	//	m_durationAITimer = (std::clock() - m_startAITimer) / (double)CLOCKS_PER_SEC;
+	//	float fMaxVelocity = 0.05f + ((static_cast<float>(m_iCurrentLevel)) / 200.0f);
+	//	float fTimer = 0.0f;
+	//	float iRandom1 = 0.0f;
+	//	float iRandom2 = 0.0f;
 
-		if (m_iCurrentLevel < 30)
-			fTimer = -0.1f * m_iCurrentLevel + 3.5f;
-		else
-			fTimer = 0.5f;
+	//	if (m_iCurrentLevel < 30)
+	//		fTimer = -0.1f * m_iCurrentLevel + 3.5f;
+	//	else
+	//		fTimer = 0.5f;
 
-		if (m_durationAITimer > fTimer) {
-			while ((iRandom1 == 0.0f) && (iRandom2 == 0.0f)) // Get random numbers either -30, 30 or 0, but don't want 0,0 because they will spawn in the middle of the map
-			{
-				iRandom1 = GetRandomPosition();
-				iRandom2 = GetRandomPosition();
-			}
+	//	if (m_durationAITimer > fTimer) {
+	//		while ((iRandom1 == 0.0f) && (iRandom2 == 0.0f)) // Get random numbers either -30, 30 or 0, but don't want 0,0 because they will spawn in the middle of the map
+	//		{
+	//			iRandom1 = GetRandomPosition();
+	//			iRandom2 = GetRandomPosition();
+	//		}
 
-			m_enemies.at(Entity::GetEnemyCounter())->SetActive(true); // set next bullet in vector to active
-			m_enemies.at(Entity::GetEnemyCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
-			m_enemies.at(Entity::GetEnemyCounter())->SetModelPosition(vec3(iRandom1, 0.0f, iRandom2)); // Set position
-			m_enemies.at(Entity::GetEnemyCounter())->SetMaxVelocity(fMaxVelocity);
-			m_enemies.at(Entity::GetEnemyCounter())->SetModelOutsideMap(true);
-			Entity::IncrementEnemyCounter();
+	//		m_enemies.at(Entity::GetEnemyCounter())->SetActive(true); // set next bullet in vector to active
+	//		m_enemies.at(Entity::GetEnemyCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+	//		m_enemies.at(Entity::GetEnemyCounter())->SetModelPosition(vec3(iRandom1, 0.0f, iRandom2)); // Set position
+	//		m_enemies.at(Entity::GetEnemyCounter())->SetMaxVelocity(fMaxVelocity);
+	//		m_enemies.at(Entity::GetEnemyCounter())->SetModelOutsideMap(true);
+	//		Entity::IncrementEnemyCounter();
 
-			m_startAITimer = std::clock();
-			m_iExtraEnemies--;
-		}
-	}
-
+	//		m_startAITimer = std::clock();
+	//		m_iExtraEnemies--;
+	//	}
+	//}
 
 	// Check if any enemies need to be deleted - either through collision with bullet or player
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
@@ -1033,6 +1036,7 @@ void GameScene::CheckEnemies() {
 			(*it)->SetActive(false); // set to inactive
 		}
 	}
+
 }
 
 /***********************
@@ -1041,29 +1045,29 @@ void GameScene::CheckEnemies() {
 * Return: void
 ********************/
 void GameScene::CheckPowerUps() {
-	int i = rand() % 3;
+	//int i = rand() % 3;
 
-	int iRand = 0;
+	//int iRand = 0;
 
-	if (m_iCurrentLevel <= 10)
-		iRand = 300;
+	//if (m_iCurrentLevel <= 10)
+	//	iRand = 20;
 
-	else if ((m_iCurrentLevel > 10) && (m_iCurrentLevel > 20))
-		iRand = 250;
+	//else if ((m_iCurrentLevel > 10) && (m_iCurrentLevel > 20))
+	//	iRand = 250;
 
-	else // Level 20 and above
-		iRand = 200;
+	//else // Level 20 and above
+	//	iRand = 200;
 
 	// Creating power ups
-	if ((rand() % iRand == 39) && !AllPowerUpsActive())   // change back to 1 in 400
+	if ((rand() % 100 == 1) && (!(m_powerUps.at(0)->IsActive()))) //!AllPowerUpsActive())   // change back to 1 in 400
 	{
-		while (m_powerUps.at(i)->IsActive()) {
-			i = rand() % 3;
-		}
+		/*while (m_powerUps.at(i)->IsActive()) {
+		i = rand() % 3;
+		}*/
 
-		m_powerUps.at(i)->SetActive(true); // set random power up to active
-		m_powerUps.at(i)->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
-		m_powerUps.at(i)->SetModelPosition(GetRandomMapPosition()); // Set position		
+		m_powerUps.at(0)->SetActive(true); // set random power up to active
+		m_powerUps.at(0)->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+		m_powerUps.at(0)->SetModelPosition(GetRandomMapPosition()); // Set position		
 	}
 
 	// Check if any powerups need to be deleted - either through collision with bullet or player
@@ -1073,40 +1077,40 @@ void GameScene::CheckPowerUps() {
 		}
 	}
 
-	// Speed boosts
-	for (auto it = m_players.begin(); it != m_players.end(); it++) {
-		if ((*it)->IsActive()) {
-			m_durationSpeedBoostTimer = (std::clock() - m_startSpeedBoostTimer) / (double)CLOCKS_PER_SEC;
+	//// Speed boosts
+	//for (auto it = m_players.begin(); it != m_players.end(); it++) {
+	//	if ((*it)->IsActive()) {
+	//		m_durationSpeedBoostTimer = (std::clock() - m_startSpeedBoostTimer) / (double)CLOCKS_PER_SEC;
 
-			if (m_durationSpeedBoostTimer > 5.0f) {
-				(*it)->ResetMaxVelocity();
-				(*it)->SetSpedUp(false);
-				m_startSpeedBoostTimer = std::clock();
-			}
-		}
-	}
+	//		if (m_durationSpeedBoostTimer > 5.0f) {
+	//			(*it)->ResetMaxVelocity();
+	//			(*it)->SetSpedUp(false);
+	//			m_startSpeedBoostTimer = std::clock();
+	//		}
+	//	}
+	//}
 
-	// Fast firing
-	for (auto it = m_players.begin(); it != m_players.end(); it++) {
-		if ((*it)->IsActive()) {
-			m_durationFastFireTimer = (std::clock() - m_startFastFireTimer) / (double)CLOCKS_PER_SEC;
+	//// Fast firing
+	//for (auto it = m_players.begin(); it != m_players.end(); it++) {
+	//	if ((*it)->IsActive()) {
+	//		m_durationFastFireTimer = (std::clock() - m_startFastFireTimer) / (double)CLOCKS_PER_SEC;
 
-			if (m_durationFastFireTimer > 5.0f) {
-				(*it)->ResetFireRate();
-				(*it)->SetFastFire(false);
-				m_startFastFireTimer = std::clock();
-			}
-		}
-	}
+	//		if (m_durationFastFireTimer > 5.0f) {
+	//			(*it)->ResetFireRate();
+	//			(*it)->SetFastFire(false);
+	//			m_startFastFireTimer = std::clock();
+	//		}
+	//	}
+	//}
 
-	// Enemy fleeing
+	//// Enemy fleeing
 
-	m_durationEnemyFleeTimer = (std::clock() - m_startEnemyFleeTimer) / (double)CLOCKS_PER_SEC;
+	//m_durationEnemyFleeTimer = (std::clock() - m_startEnemyFleeTimer) / (double)CLOCKS_PER_SEC;
 
-	if (m_durationEnemyFleeTimer > 2.0f) {
-		ResetEnemyBehaviours();
-		m_startEnemyFleeTimer = std::clock();
-	}
+	//if (m_durationEnemyFleeTimer > 2.0f) {
+	//	ResetEnemyBehaviours();
+	//	m_startEnemyFleeTimer = std::clock();
+	//}
 
 	//Extra Lives
 
@@ -1130,135 +1134,141 @@ void GameScene::CheckPowerUps() {
 * Parameters: none
 * Return: void
 ********************/
-void GameScene::CheckCollisions() {
+void GameScene::CheckEnemyOnEnemyCollisions() {
+
 	// Enemy and player collisions
-	for (auto it = m_players.begin(); it != m_players.end(); it++) {
-		for (auto it2 = m_enemies.begin(); it2 != m_enemies.end(); it2++) {
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&
-				((*it)->IsActive()) && (*it2)->IsActive()) {
-				(*it)->SetToDead();
-				//		m_pAudioMgr->playSound(m_pDieSound, 0, false, &m_pDieChannel);
-				return;
-			}
-		}
-	}
 
-	// Enemy bullet and player collisions
-	for (auto it = m_players.begin(); it != m_players.end(); it++) {
-		for (auto it2 = m_enemyBullets.begin(); it2 != m_enemyBullets.end(); it2++) {
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
-				((*it)->IsActive()) && ((*it2)->IsActive())) {
-				(*it)->SetToDead();
-				//		m_pAudioMgr->playSound(m_pDieSound, 0, false, &m_pDieChannel);
-				return;
+	//for (auto it = m_players.begin(); it != m_players.end(); it++) {
+	//	for (auto it2 = m_enemies.begin(); it2 != m_enemies.end(); it2++) {
 
-				//break;
-			}
-		}
-	}
+	//		if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.2f) &&   // within a distance
+	//			(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.2f) &&
+	//			((*it)->IsActive()) && (*it2)->IsActive()) {
 
-	// Player bullet and enemy collisions
-	// Player 1
-	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
-		for (auto it2 = m_player1Bullets.begin(); it2 != m_player1Bullets.end(); it2++) {
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
-				((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
-				(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
-				(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
+	//			(*it)->SetToDead();
+	//			return;
 
-				if ((*it)->GetModel()->IsLeader()) {
-					(*it)->SetLeaderDead();
-					(*it)->SetLeader(false);
-					(*it)->GetModel()->SetLeader(false);
+	//		}
 
-				}
+	//	}
 
-				//			m_pPlayer->AddToScore(10);
-				AddToScore(10);
-				m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
+	//}
 
-				break;
-			}
-		}
-	}
+	//// Enemy bullet and player collisions
+	//for (auto it = m_players.begin(); it != m_players.end(); it++) {
+	//	for (auto it2 = m_enemyBullets.begin(); it2 != m_enemyBullets.end(); it2++) {
+	//		if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+	//			(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+	//			((*it)->IsActive()) && ((*it2)->IsActive())) {
+	//			(*it)->SetToDead();
+	//			//		m_pAudioMgr->playSound(m_pDieSound, 0, false, &m_pDieChannel);
+	//			return;
+
+	//			//break;
+	//		}
+	//	}
+	//}
+
+	//// Player bullet and enemy collisions
+	//// Player 1
+	//for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
+	//	for (auto it2 = m_player1Bullets.begin(); it2 != m_player1Bullets.end(); it2++) {
+	//		if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+	//			(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+	//			((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
+	//			(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
+	//			(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
+
+	//			if ((*it)->GetModel()->IsLeader()) {
+	//				(*it)->SetLeaderDead();
+	//				(*it)->SetLeader(false);
+	//				(*it)->GetModel()->SetLeader(false);
+
+	//			}
+
+	//			//			m_pPlayer->AddToScore(10);
+	//			AddToScore(10);
+	//			m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
+
+	//			break;
+	//		}
+	//	}
+	//}
 
 	// Player 2
-	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
-		for (auto it2 = m_player2Bullets.begin(); it2 != m_player2Bullets.end(); it2++) {
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
-				((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
-				(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
-				(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
+	//for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
+	//	for (auto it2 = m_player2Bullets.begin(); it2 != m_player2Bullets.end(); it2++) {
+	//		if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+	//			(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+	//			((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
+	//			(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
+	//			(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
 
-				if ((*it)->GetModel()->IsLeader()) {
-					(*it)->SetLeaderDead();
-					(*it)->SetLeader(false);
-					(*it)->GetModel()->SetLeader(false);
+	//			if ((*it)->GetModel()->IsLeader()) {
+	//				(*it)->SetLeaderDead();
+	//				(*it)->SetLeader(false);
+	//				(*it)->GetModel()->SetLeader(false);
 
-				}
+	//			}
 
-				//			m_pPlayer->AddToScore(10);
-				AddToScore(10);
-				m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
+	//			//			m_pPlayer->AddToScore(10);
+	//			AddToScore(10);
+	//			m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
 
-				break;
-			}
-		}
-	}
+	//			break;
+	//		}
+	//	}
+	//}
 
-	// Player 3
-	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
-		for (auto it2 = m_player3Bullets.begin(); it2 != m_player3Bullets.end(); it2++) {
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
-				((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
-				(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
-				(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
+	//// Player 3
+	//for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
+	//	for (auto it2 = m_player3Bullets.begin(); it2 != m_player3Bullets.end(); it2++) {
+	//		if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+	//			(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+	//			((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
+	//			(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
+	//			(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
 
-				if ((*it)->GetModel()->IsLeader()) {
-					(*it)->SetLeaderDead();
-					(*it)->SetLeader(false);
-					(*it)->GetModel()->SetLeader(false);
+	//			if ((*it)->GetModel()->IsLeader()) {
+	//				(*it)->SetLeaderDead();
+	//				(*it)->SetLeader(false);
+	//				(*it)->GetModel()->SetLeader(false);
 
-				}
+	//			}
 
-				//			m_pPlayer->AddToScore(10);
-				AddToScore(10);
-				m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
+	//			//			m_pPlayer->AddToScore(10);
+	//			AddToScore(10);
+	//			m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
 
-				break;
-			}
-		}
-	}
+	//			break;
+	//		}
+	//	}
+	//}
 
-	// Player 4
-	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
-		for (auto it2 = m_player4Bullets.begin(); it2 != m_player4Bullets.end(); it2++) {
-			if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
-				(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
-				((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
-				(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
-				(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
+	//// Player 4
+	//for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
+	//	for (auto it2 = m_player4Bullets.begin(); it2 != m_player4Bullets.end(); it2++) {
+	//		if ((abs(((*it)->GetModel()->GetPosition().x) - ((*it2)->GetModel()->GetPosition().x)) < 1.0f) &&   // within a distance
+	//			(abs(((*it)->GetModel()->GetPosition().z) - ((*it2)->GetModel()->GetPosition().z)) < 1.0f) &&
+	//			((*it)->GetEntityType() == ENEMY) && ((*it2)->IsActive()) && ((*it)->IsActive())) {
+	//			(*it)->GetModel()->SetToBeDeleted(); // set to delete enemy
+	//			(*it2)->GetModel()->SetToBeDeleted(); // set to delete player bullet
 
-				if ((*it)->GetModel()->IsLeader()) {
-					(*it)->SetLeaderDead();
-					(*it)->SetLeader(false);
-					(*it)->GetModel()->SetLeader(false);
+	//			if ((*it)->GetModel()->IsLeader()) {
+	//				(*it)->SetLeaderDead();
+	//				(*it)->SetLeader(false);
+	//				(*it)->GetModel()->SetLeader(false);
 
-				}
+	//			}
 
-				//			m_pPlayer->AddToScore(10);
-				AddToScore(10);
-				m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
+	//			//			m_pPlayer->AddToScore(10);
+	//			AddToScore(10);
+	//			m_pAudioMgr->playSound(m_pHitSound, 0, false, &m_pHitChannel);
 
-				break;
-			}
-		}
-	}
+	//			break;
+	//		}
+	//	}
+	//}
 	////////////////  To Add later /////////  Change to check all 4 players' bullets
 
 	// Player bullet and enemy bullet collisions
@@ -1311,84 +1321,84 @@ void GameScene::CheckCollisions() {
 	//	}
 	//}
 
-	// Enemy and wall collisions
-	float fMapSize = MAP_SIZE - 0.5f;
+	//// Enemy and wall collisions
+	//float fMapSize = MAP_SIZE - 0.5f;
 
-	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
-		if ((!((*it)->GetAIBehaviour() == LEADERFOLLOW)))// && (!((*it)->GetAIBehaviour() == FLOCK)))
-		{
-			if (((*it)->GetModel()->HasEnteredMap()) && ((*it)->GetModel()->IsOutsideMap()))
-				(*it)->GetModel()->SetOutsideMap(false);
+	//for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
+	//	if ((!((*it)->GetAIBehaviour() == LEADERFOLLOW)))// && (!((*it)->GetAIBehaviour() == FLOCK)))
+	//	{
+	//		if (((*it)->GetModel()->HasEnteredMap()) && ((*it)->GetModel()->IsOutsideMap()))
+	//			(*it)->GetModel()->SetOutsideMap(false);
 
-			else if (((*it)->GetModel()->HasExitedMap()) && (!((*it)->GetModel()->IsOutsideMap())))
-				(*it)->GetModel()->SetOutsideMap(true);
+	//		else if (((*it)->GetModel()->HasExitedMap()) && (!((*it)->GetModel()->IsOutsideMap())))
+	//			(*it)->GetModel()->SetOutsideMap(true);
 
-			////Right side and bottom
-			//if (((((*it)->GetModel()->GetPosition().x) > fMapSize) ||
-			//	(((*it)->GetModel()->GetPosition().z) > fMapSize)) &&
-			//	((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
-			//	(!((*it)->GetModel()->IsOutsideMap())))
-			//{
-			//	(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
-			//}
+	//		////Right side and bottom
+	//		//if (((((*it)->GetModel()->GetPosition().x) > fMapSize) ||
+	//		//	(((*it)->GetModel()->GetPosition().z) > fMapSize)) &&
+	//		//	((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+	//		//	(!((*it)->GetModel()->IsOutsideMap())))
+	//		//{
+	//		//	(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
+	//		//}
 
-			//Right
-			if ((((*it)->GetModel()->GetPosition().x) > fMapSize) &&
-				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
-				(!((*it)->GetModel()->IsOutsideMap()))) {
-				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));	
-				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
-				//	((*it)->GetModel()->GetPosition().x)
-				//	(*it)->Seek(vec3(fMapSize, 0.0f, (*it)->GetModel()->GetPosition().z));
-				int iRand = rand() % 2;
+	//		//Right
+	//		if ((((*it)->GetModel()->GetPosition().x) > fMapSize) &&
+	//			((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+	//			(!((*it)->GetModel()->IsOutsideMap()))) {
+	//			//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));	
+	//			//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+	//			//	((*it)->GetModel()->GetPosition().x)
+	//			//	(*it)->Seek(vec3(fMapSize, 0.0f, (*it)->GetModel()->GetPosition().z));
+	//			int iRand = rand() % 2;
 
-				if (iRand == 0)
-					(*it)->GetModel()->SetPosition(vec3(fMapSize, 0.0f, ((*it)->GetModel()->GetPosition().z)));
-				else
-					(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
-			}
+	//			if (iRand == 0)
+	//				(*it)->GetModel()->SetPosition(vec3(fMapSize, 0.0f, ((*it)->GetModel()->GetPosition().z)));
+	//			else
+	//				(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
+	//		}
 
-			//Left
-			if ((((*it)->GetModel()->GetPosition().x) < -fMapSize) &&
-				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
-				(!((*it)->GetModel()->IsOutsideMap()))) {
-				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));	
-				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
-				//	((*it)->GetModel()->GetPosition().x)
-				//	(*it)->Seek(vec3(fMapSize, 0.0f, (*it)->GetModel()->GetPosition().z));
-				(*it)->GetModel()->SetPosition(vec3(-fMapSize, 0.0f, ((*it)->GetModel()->GetPosition().z)));
-			}
+	//		//Left
+	//		if ((((*it)->GetModel()->GetPosition().x) < -fMapSize) &&
+	//			((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+	//			(!((*it)->GetModel()->IsOutsideMap()))) {
+	//			//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));	
+	//			//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+	//			//	((*it)->GetModel()->GetPosition().x)
+	//			//	(*it)->Seek(vec3(fMapSize, 0.0f, (*it)->GetModel()->GetPosition().z));
+	//			(*it)->GetModel()->SetPosition(vec3(-fMapSize, 0.0f, ((*it)->GetModel()->GetPosition().z)));
+	//		}
 
 
-			//Top
-			if ((((*it)->GetModel()->GetPosition().z) < -fMapSize) &&
-				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
-				(!((*it)->GetModel()->IsOutsideMap()))) {
-				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));
-				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
-				//	((*it)->GetModel()->GetPosition().x)
-				//	(*it)->Seek(vec3((*it)->GetModel()->GetPosition().z, 0.0f, fMapSize));
-				(*it)->GetModel()->SetPosition(vec3(((*it)->GetModel()->GetPosition().x), 0.0f, -fMapSize));
-			}
+	//		//Top
+	//		if ((((*it)->GetModel()->GetPosition().z) < -fMapSize) &&
+	//			((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+	//			(!((*it)->GetModel()->IsOutsideMap()))) {
+	//			//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));
+	//			//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+	//			//	((*it)->GetModel()->GetPosition().x)
+	//			//	(*it)->Seek(vec3((*it)->GetModel()->GetPosition().z, 0.0f, fMapSize));
+	//			(*it)->GetModel()->SetPosition(vec3(((*it)->GetModel()->GetPosition().x), 0.0f, -fMapSize));
+	//		}
 
-			//Bottom
-			if ((((*it)->GetModel()->GetPosition().z) > fMapSize) &&
-				((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
-				(!((*it)->GetModel()->IsOutsideMap()))) {
-				//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));
-				//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
-				//	((*it)->GetModel()->GetPosition().x)
-				//	(*it)->Seek(vec3((*it)->GetModel()->GetPosition().z, 0.0f, fMapSize));
-				int iRand = rand() % 2;
+	//		//Bottom
+	//		if ((((*it)->GetModel()->GetPosition().z) > fMapSize) &&
+	//			((*it)->IsActive()) && //(!((*it)->IsFleeing())) &&//((!((*it)->GetAIBehaviour() == WANDER)) || ((*it)->IsFleeing())) &&*/
+	//			(!((*it)->GetModel()->IsOutsideMap()))) {
+	//			//	(*it)->Seek(vec3(1.0f, 0.0f, 1.0f));
+	//			//	(*it)->Seek(-((*it)->GetModel()->GetPosition()));
+	//			//	((*it)->GetModel()->GetPosition().x)
+	//			//	(*it)->Seek(vec3((*it)->GetModel()->GetPosition().z, 0.0f, fMapSize));
+	//			int iRand = rand() % 2;
 
-				if (iRand == 0)
-					(*it)->GetModel()->SetPosition(vec3(((*it)->GetModel()->GetPosition().x), 0.0f, fMapSize));
+	//			if (iRand == 0)
+	//				(*it)->GetModel()->SetPosition(vec3(((*it)->GetModel()->GetPosition().x), 0.0f, fMapSize));
 
-				else
-					(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
-			}
-		}
-	}
+	//			else
+	//				(*it)->Seek(vec3(0.0f, 0.0f, 0.0f));
+	//		}
+	//	}
+	//}
 
 	// Enemy and enemy collisions
 	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
@@ -1398,11 +1408,16 @@ void GameScene::CheckCollisions() {
 				(((*it)->GetModel()->GetPosition().x) != ((*it2)->GetModel()->GetPosition().x)) &&      // but not equal - that would be the same object
 				((*it)->GetModel()->GetPosition().z) != ((*it2)->GetModel()->GetPosition().z) &&
 				((*it)->IsActive()) && ((*it2)->IsActive())) {
+
 				(*it)->Flee((*it2)->GetModel()->GetPosition());
-				//		break;						
+				//		break;		
+
 			}
+
 		}
+
 	}
+
 }
 #pragma endregion COLLISION
 
@@ -1567,7 +1582,7 @@ void GameScene::Update() {
 				ResetPlayerLives();
 				ResetScore();
 				m_iCurrentLevel = 1;
-				UpdateEntities();
+				//		UpdateEntities();
 				m_iGameState = NETWORK_SELECT;
 				m_iCursorIndex = 0;
 
@@ -1726,8 +1741,10 @@ void GameScene::Update() {
 
 				}
 
-				m_packet.Serialize(COMMAND, usernameC, "!A");
+				m_packet.SerializeMessage(COMMAND, usernameC, "!A");
 				m_pClient->SendData(m_packet.PacketData);
+
+				//m_startClientSendingTimer = std::clock();
 
 				m_iGameState = PLAY;
 
@@ -1743,15 +1760,25 @@ void GameScene::Update() {
 
 		if (keyState[(unsigned char)27] == BUTTON_DOWN) {
 
-			m_packet.Serialize(QUIT, m_pClient->GetName(), "SERVER");
+			m_packet.SerializeMessage(QUIT, m_pClient->GetName(), "SERVER");
 			m_pClient->SendData(m_packet.PacketData);
 			Sleep(150);
 			m_iGameState = MENU;
 
 		}
 		else if (m_eNetworkEntityType == CLIENT) {
+
+			//m_durationClientSendingTimer = (std::clock() - m_startClientSendingTimer) / (double)CLOCKS_PER_SEC;
+
+			//if (m_durationClientSendingTimer > 0.001f) {
+
+			if (!m_pClient->HasGameStarted())
+				return;
+
 			UpdateClient();
-			UpdateEnemiesForClient();
+
+			//m_startClientSendingTimer = std::clock();
+		//}
 		}
 
 	}
@@ -1784,12 +1811,14 @@ void GameScene::Update() {
 
 void GameScene::UpdateServer() {
 
-	// Check all the game info based on positions stored in server:
-
-//	if ((m_eNetworkEntityType == SERVER) && (m_pServer->HasGameStarted())) {
-
 	if (!m_pServer->HasGameStarted())
 		return;
+
+	if (!m_bUpdateEntities) {
+
+		UpdateEntities();
+		m_bUpdateEntities = true;
+	}
 
 	//if (AllPlayersDead()) {
 	//	SetAllBulletsInactive();
@@ -1804,7 +1833,7 @@ void GameScene::UpdateServer() {
 
 	//	}
 
-	UpdateEntities(); // restart level		
+	//UpdateEntities(); // restart level		
 	//}
 
 	//else if (IsLevelComplete() && (m_iCurrentLevel > 0)) {
@@ -1814,90 +1843,58 @@ void GameScene::UpdateServer() {
 	//	SetLevelComplete(false);
 	//}
 
-	CheckEnemies();  // Check if any enemies need to be deactivated - if set "to delete"
+	//CheckEnemies();  // Check if any enemies need to be deactivated - if set "to delete"
 	//CheckBullets();  // Check if any bullets need to be deactivated - if set "to delete"
-	//CheckPowerUps();
+	CheckPowerUps();
 
-	//CheckCollisions();
+	CheckEnemyOnEnemyCollisions();
 
+	// Enemies
+	for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
+		if ((*it)->IsActive()) {
+			(*it)->SetPositions(m_fDeltaTick);
+			(*it)->GetModel()->Render((*it)->GetCurrentVelocity());
+		}
+	}
 
-
-	//Server vector of enemies needs to be updated from the gamscene vector of enemies
-	std::vector<Enemy*> tempEnemies;
+	// Server vector of enemies needs to be updated from the gamscene vector of enemies
+	std::vector<Enemy> tempEnemies;
 
 	//for (auto it = m_enemies.begin(); it != m_enemies.end(); it++) {
-	for (int y{ 0 }; y < 8; y++){
-	
+	for (int y{ 0 }; y < 8; y++) {
+
 		Enemy temp;
 		temp.SetPosition(m_enemies[y]->GetModel()->GetPosition());
 		temp.SetActivity(m_enemies[y]->IsActive());
-		tempEnemies.push_back(&temp);
+		tempEnemies.push_back(temp);
 
 	}
 
 	m_pServer->SetEnemies(tempEnemies);
 
-	// Send info to players
 
-	//// Player positions
-	//TPacket _packetToSend;
+	//Power ups
+	for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++) {
+		if ((*it)->IsActive()) {
 
-	//_packetToSend.SerializePosition(POSITION, " P1", "-", m_pServer->GetPlayer("P1")->GetPosition());
-	//m_pServer->SendDataToAll(_packetToSend.PacketData);
+			(*it)->SetPositions(m_fDeltaTick);
+			(*it)->GetModel()->Render((*it)->GetCurrentVelocity());
 
-	//_packetToSend.SerializePosition(POSITION, " P2", "-", m_pServer->GetPlayer("P2")->GetPosition());
-	//m_pServer->SendDataToAll(_packetToSend.PacketData);
+			PowerUp temp;
+			temp.SetPosition(m_powerUps[0]->GetModel()->GetPosition());
+			temp.SetActivity(m_powerUps[0]->IsActive());
 
-	//_packetToSend.SerializePosition(POSITION, " P3", "-", m_pServer->GetPlayer("P3")->GetPosition());
-	//m_pServer->SendDataToAll(_packetToSend.PacketData);
+			m_pServer->SetPowerUp(temp);
 
-	//_packetToSend.SerializePosition(POSITION, " P4", "-", m_pServer->GetPlayer("P4")->GetPosition());
-	//m_pServer->SendDataToAll(_packetToSend.PacketData);
+		}
 
-//	}
+	}
 
-//	m_pServer->SendPositionsToPlayers();
-
-// Player and player collisions
-	//std::vector<Player*> mp = m_pServer->GetPlayers();
-
-	//for (auto it = mp.begin(); it != mp.end(); it++) {
-
-	//	/*if (!(*it)->IsActive())
-	//		continue;*/
-
-	//	for (auto it2 = mp.begin(); it2 < mp.end(); it2++) {
-
-	//		/*if (!(*it2)->IsActive())
-	//			continue;*/
-
-	//		if ((abs(((*it)->GetPosition().x) - ((*it2)->GetPosition().x)) < 1.2f) &&   // within a distance
-	//			(abs(((*it)->GetPosition().z) - ((*it2)->GetPosition().z)) < 1.2f) &&   // within a distance
-	//			(((*it)->GetPosition().x) != ((*it2)->GetPosition().x)) &&      // but not equal - that would be the same object
-	//			((*it)->GetPosition().z) != ((*it2)->GetPosition().z)
-	//		
-	//		&& ((*it)->IsActive()) && ((*it2)->IsActive())) {
-
-	//			//std::cout << "Collision!" << std::endl;
-	//			m_packet.Serialize(COMMAND, (*it)->GetName(), "!C");
-	//			m_pServer->SendDataToAll(m_packet.PacketData);
-
-	//		}
-
-	//		/*else {
-	//			m_packet.Serialize(COMMAND, (*it)->GetName(), "!N");
-	//			m_pServer->SendDataToAll(m_packet.PacketData);
-	//		}*/
-	//	}
-	//}
-
+	Sleep(10);
 
 }
 
 void GameScene::UpdateClient() {
-
-	if (!m_pClient->HasGameStarted())
-		return;
 
 	// Checking which players are active
 	if (m_pClient->IsActive("P1")) {
@@ -1913,12 +1910,9 @@ void GameScene::UpdateClient() {
 		m_pPlayer4->SetActive(true);
 	}
 
-	// Setting the clients position and sending to the server
-
 	if (username == " P1") {
 
-	//	if (!m_pClient->HasCollided())
-			m_pPlayer1->SetPositions(m_fDeltaTick);
+		m_pPlayer1->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer2->IsActive())
 			m_pPlayer2->GetModel()->SetPosition(m_pClient->GetPosition("P2"));
@@ -1929,10 +1923,9 @@ void GameScene::UpdateClient() {
 
 		m_packet.SerializePosition(POSITION_P, usernameC, "-", m_pPlayer1->GetModel()->GetPosition());
 	}
-	if (username == " P2") {
-		
-	//	if (!m_pClient->HasCollided())
-			m_pPlayer2->SetPositions(m_fDeltaTick);
+	else if (username == " P2") {
+
+		m_pPlayer2->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer1->IsActive())
 			m_pPlayer1->GetModel()->SetPosition(m_pClient->GetPosition("P1"));
@@ -1943,10 +1936,9 @@ void GameScene::UpdateClient() {
 
 		m_packet.SerializePosition(POSITION_P, usernameC, "-", m_pPlayer2->GetModel()->GetPosition());
 	}
-	if (username == " P3") {
+	else if (username == " P3") {
 
-	//	if (!m_pClient->HasCollided())
-			m_pPlayer3->SetPositions(m_fDeltaTick);
+		m_pPlayer3->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer1->IsActive())
 			m_pPlayer1->GetModel()->SetPosition(m_pClient->GetPosition("P1"));
@@ -1957,10 +1949,9 @@ void GameScene::UpdateClient() {
 
 		m_packet.SerializePosition(POSITION_P, usernameC, "-", m_pPlayer3->GetModel()->GetPosition());
 	}
-	if (username == " P4") {
+	else if (username == " P4") {
 
-	//	if (!m_pClient->HasCollided())
-			m_pPlayer4->SetPositions(m_fDeltaTick);
+		m_pPlayer4->SetPositions(m_fDeltaTick);
 
 		if (m_pPlayer1->IsActive())
 			m_pPlayer1->GetModel()->SetPosition(m_pClient->GetPosition("P1"));
@@ -1971,9 +1962,26 @@ void GameScene::UpdateClient() {
 
 		m_packet.SerializePosition(POSITION_P, usernameC, "-", m_pPlayer4->GetModel()->GetPosition());
 	}
+	else {
+		return;
+	}
+
+	Sleep(10);
 
 	m_pClient->SendData(m_packet.PacketData);
 
+	UpdateEnemiesForClient();
+	UpdatePowerUpsForClient();
+	UpdateBulletsForClient();
+
+}
+
+void GameScene::UpdatePowerUpsForClient() {
+
+	bool isPowerUpActive = m_pClient->GetPowerUp()->IsActive();
+	m_powerUps.at(0)->SetActive(isPowerUpActive);
+	vec3 pos = m_pClient->GetPowerUp()->GetPosition();
+	m_powerUps.at(0)->GetModel()->SetPosition(pos);
 }
 
 void GameScene::UpdateEnemiesForClient() {
@@ -1985,6 +1993,218 @@ void GameScene::UpdateEnemiesForClient() {
 		vec3 pos = m_pClient->GetEnemies().at(x)->GetPosition();
 		m_enemies[x]->GetModel()->SetPosition(pos);
 	}
+}
+
+void GameScene::UpdateBulletsForClient() {
+
+	Entity* tempPlayer = new Entity;
+
+	//Checking username
+	if (username == " P1")
+		tempPlayer = m_pPlayer1;
+	if (username == " P2")
+		tempPlayer = m_pPlayer2;
+	if (username == " P3")
+		tempPlayer = m_pPlayer3;
+	if (username == " P4")
+		tempPlayer = m_pPlayer4;
+
+
+	/////////////////    Checking if bullet has been fired  ////////////////////////
+	if (Entity::IsPlayerBulletFired()) {
+
+		m_playerBullets.at(Entity::GetPlayerBulletCounter())->SetActive(true); // set next bullet in vector to active
+		m_playerBullets.at(Entity::GetPlayerBulletCounter())->GetModel()->ResetToBeDeleted(); // set "tobedeleted" to false so its not immediately deleted
+		m_playerBullets.at(Entity::GetPlayerBulletCounter())->SetModelPosition(tempPlayer->GetModel()->GetPosition()); // Set position to players current position
+
+		Entity::IncrementPlayerBulletCounter(); // increment the bullet counter for the next bullet fired
+
+		m_pAudioMgr->playSound(m_pShootSound, 0, false, &m_pShootChannel);
+
+	}
+
+	// Check if any bullets need to be deleted - either through collision with object or edge of map
+	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++) {
+
+		if ((*it)->ToDelete()) {
+
+			(*it)->SetActive(false); // set to inactive
+			(*it)->ResetVelocityForPlayerBullets(); // reset velocity
+		}
+	}
+
+	//////////   SETTING BULLET POSITIONS ///////////////////
+	tempPlayer->SetBulletPositions(m_fDeltaTick);
+
+	//Player Bullets
+	for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++) {
+		if ((*it)->IsActive())
+			
+			(*it)->SetPositions(m_fDeltaTick);
+	}
+
+
+	////////////    ASSIGNING BULLET VECTOR TO CORRECT PLAYER   //////////////
+	
+	if (username == " P1") {
+		for (int x{ 0 }; x < 10; x++) {
+			m_player1Bullets[x] = m_playerBullets[x];
+		}
+	}
+	if (username == " P2") {
+		for (int x{ 0 }; x < 10; x++) {
+			m_player2Bullets[x] = m_playerBullets[x];
+		}
+	}
+	if (username == " P3") {
+		for (int x{ 0 }; x < 10; x++) {
+			m_player3Bullets[x] = m_playerBullets[x];
+		}
+	}
+	if (username == " P4") {
+		for (int x{ 0 }; x < 10; x++) {
+			m_player4Bullets[x] = m_playerBullets[x];
+		}
+	}
+
+
+	/////////////////   ASSIGNING OTHER PLAYERS BULLETS FROM THE CLIENT   //////////////////
+
+
+	if (username == " P1") {
+
+		for (int x{ 0 }; x < 10; x++) {
+
+			m_pClient->GetP1Bullets().at(x)->SetPosition(m_player1Bullets.at(x)->GetModel()->GetPosition());
+			m_pClient->GetP1Bullets().at(x)->SetActivity(m_player1Bullets.at(x)->IsActive());
+		}
+		
+
+		if (m_pPlayer2->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player2Bullets[x]->GetModel()->SetPosition(m_pClient->GetP2Bullets().at(x)->GetPosition());
+				m_player2Bullets[x]->SetActive(m_pClient->GetP2Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer3->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player3Bullets[x]->GetModel()->SetPosition(m_pClient->GetP3Bullets().at(x)->GetPosition());
+				m_player3Bullets[x]->SetActive(m_pClient->GetP3Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer4->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player4Bullets[x]->GetModel()->SetPosition(m_pClient->GetP4Bullets().at(x)->GetPosition());
+				m_player4Bullets[x]->SetActive(m_pClient->GetP4Bullets().at(x)->IsActive());
+			}
+		}
+
+		m_packet.SerializeBullets(POSITION_B, usernameC, (*m_pClient->GetP1Bullets().at(0)), (*m_pClient->GetP1Bullets().at(1)), (*m_pClient->GetP1Bullets().at(2)), (*m_pClient->GetP1Bullets().at(3)),
+			(*m_pClient->GetP1Bullets().at(4)), (*m_pClient->GetP1Bullets().at(5)), (*m_pClient->GetP1Bullets().at(6)), (*m_pClient->GetP1Bullets().at(7)), (*m_pClient->GetP1Bullets().at(8)),
+			(*m_pClient->GetP1Bullets().at(9)));
+	}
+
+	if (username == " P2") {
+
+		for (int x{ 0 }; x < 10; x++) {
+
+			m_pClient->GetP2Bullets().at(x)->SetPosition(m_player2Bullets.at(x)->GetModel()->GetPosition());
+			m_pClient->GetP2Bullets().at(x)->SetActivity(m_player2Bullets.at(x)->IsActive());
+		}
+
+
+		if (m_pPlayer1->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player1Bullets[x]->GetModel()->SetPosition(m_pClient->GetP1Bullets().at(x)->GetPosition());
+				m_player1Bullets[x]->SetActive(m_pClient->GetP1Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer3->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player3Bullets[x]->GetModel()->SetPosition(m_pClient->GetP3Bullets().at(x)->GetPosition());
+				m_player3Bullets[x]->SetActive(m_pClient->GetP3Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer4->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player4Bullets[x]->GetModel()->SetPosition(m_pClient->GetP4Bullets().at(x)->GetPosition());
+				m_player4Bullets[x]->SetActive(m_pClient->GetP4Bullets().at(x)->IsActive());
+			}
+		}
+
+		m_packet.SerializeBullets(POSITION_B, usernameC, (*m_pClient->GetP2Bullets().at(0)), (*m_pClient->GetP2Bullets().at(1)), (*m_pClient->GetP2Bullets().at(2)), (*m_pClient->GetP2Bullets().at(3)),
+			(*m_pClient->GetP2Bullets().at(4)), (*m_pClient->GetP2Bullets().at(5)), (*m_pClient->GetP2Bullets().at(6)), (*m_pClient->GetP2Bullets().at(7)), (*m_pClient->GetP2Bullets().at(8)),
+			(*m_pClient->GetP2Bullets().at(9)));
+	}
+
+	if (username == " P3") {
+
+		for (int x{ 0 }; x < 10; x++) {
+
+			m_pClient->GetP3Bullets().at(x)->SetPosition(m_player3Bullets.at(x)->GetModel()->GetPosition());
+			m_pClient->GetP3Bullets().at(x)->SetActivity(m_player3Bullets.at(x)->IsActive());
+		}
+
+
+		if (m_pPlayer2->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player2Bullets[x]->GetModel()->SetPosition(m_pClient->GetP2Bullets().at(x)->GetPosition());
+				m_player2Bullets[x]->SetActive(m_pClient->GetP2Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer1->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player1Bullets[x]->GetModel()->SetPosition(m_pClient->GetP1Bullets().at(x)->GetPosition());
+				m_player1Bullets[x]->SetActive(m_pClient->GetP1Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer4->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player4Bullets[x]->GetModel()->SetPosition(m_pClient->GetP4Bullets().at(x)->GetPosition());
+				m_player4Bullets[x]->SetActive(m_pClient->GetP4Bullets().at(x)->IsActive());
+			}
+		}
+
+		m_packet.SerializeBullets(POSITION_B, usernameC, (*m_pClient->GetP3Bullets().at(0)), (*m_pClient->GetP3Bullets().at(1)), (*m_pClient->GetP3Bullets().at(2)), (*m_pClient->GetP3Bullets().at(3)),
+			(*m_pClient->GetP3Bullets().at(4)), (*m_pClient->GetP3Bullets().at(5)), (*m_pClient->GetP3Bullets().at(6)), (*m_pClient->GetP3Bullets().at(7)), (*m_pClient->GetP3Bullets().at(8)),
+			(*m_pClient->GetP3Bullets().at(9)));
+	}
+
+	if (username == " P4") {
+
+		for (int x{ 0 }; x < 10; x++) {
+
+			m_pClient->GetP4Bullets().at(x)->SetPosition(m_player4Bullets.at(x)->GetModel()->GetPosition());
+			m_pClient->GetP4Bullets().at(x)->SetActivity(m_player4Bullets.at(x)->IsActive());
+		}
+
+
+		if (m_pPlayer2->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player2Bullets[x]->GetModel()->SetPosition(m_pClient->GetP2Bullets().at(x)->GetPosition());
+				m_player2Bullets[x]->SetActive(m_pClient->GetP2Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer3->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player3Bullets[x]->GetModel()->SetPosition(m_pClient->GetP3Bullets().at(x)->GetPosition());
+				m_player3Bullets[x]->SetActive(m_pClient->GetP3Bullets().at(x)->IsActive());
+			}
+		}
+		if (m_pPlayer1->IsActive()) {
+			for (int x{ 0 }; x < 10; x++) {
+				m_player1Bullets[x]->GetModel()->SetPosition(m_pClient->GetP1Bullets().at(x)->GetPosition());
+				m_player1Bullets[x]->SetActive(m_pClient->GetP1Bullets().at(x)->IsActive());
+			}
+		}
+
+		m_packet.SerializeBullets(POSITION_B, usernameC, (*m_pClient->GetP4Bullets().at(0)), (*m_pClient->GetP4Bullets().at(1)), (*m_pClient->GetP4Bullets().at(2)), (*m_pClient->GetP4Bullets().at(3)),
+			(*m_pClient->GetP4Bullets().at(4)), (*m_pClient->GetP4Bullets().at(5)), (*m_pClient->GetP4Bullets().at(6)), (*m_pClient->GetP4Bullets().at(7)), (*m_pClient->GetP4Bullets().at(8)),
+			(*m_pClient->GetP4Bullets().at(9)));
+	}
+
+	Sleep(50);
+	m_pClient->SendData(m_packet.PacketData);
 }
 
 #pragma endregion UPDATE
@@ -2011,36 +2231,43 @@ void GameScene::RenderEntities() {
 
 	if (m_iGameState == PLAY) {
 
+	
+		//for (auto it = m_playerBullets.begin(); it != m_playerBullets.end(); it++) {
+		//		if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
+		//			(*it)->Render();
+		//	}
+
 		// Render player bullets
-		if (!(m_pPlayer1->IsPlayerDead()))
+	//	if (!(m_pPlayer1->IsPlayerDead()))
+
 			for (auto it = m_player1Bullets.begin(); it != m_player1Bullets.end(); it++) {
 				if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
 					(*it)->Render();
 			}
 
-		if (!(m_pPlayer2->IsPlayerDead()))
+	//	if (!(m_pPlayer2->IsPlayerDead()))
 			for (auto it = m_player2Bullets.begin(); it != m_player2Bullets.end(); it++) {
 				if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
 					(*it)->Render();
 			}
 
-		if (!(m_pPlayer3->IsPlayerDead()))
+	//	if (!(m_pPlayer3->IsPlayerDead()))
 			for (auto it = m_player3Bullets.begin(); it != m_player3Bullets.end(); it++) {
 				if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
 					(*it)->Render();
 			}
 
-		if (!(m_pPlayer4->IsPlayerDead()))
+	//	if (!(m_pPlayer4->IsPlayerDead()))
 			for (auto it = m_player4Bullets.begin(); it != m_player4Bullets.end(); it++) {
 				if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
 					(*it)->Render();
 			}
 
-		// Render enemy bullets
-		for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++) {
-			if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
-				(*it)->Render();
-		}
+		//// Render enemy bullets
+		//for (auto it = m_enemyBullets.begin(); it != m_enemyBullets.end(); it++) {
+		//	if (((*it)->GetModel() != nullptr) && ((*it)->IsActive()))
+		//		(*it)->Render();
+		//}
 
 		// Render players
 		for (auto it = m_players.begin(); it != m_players.end(); it++) {
@@ -2059,11 +2286,12 @@ void GameScene::RenderEntities() {
 				(*it)->Render();
 		}
 
-		//// Render power ups
-		//for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++) {
-		//	if ((*it)->IsActive())
-		//		(*it)->Render();
-		//}
+		// Render PowerUps
+		for (auto it = m_powerUps.begin(); it != m_powerUps.end(); it++) {
+			if ((*it)->IsActive())
+				(*it)->Render();
+		}
+
 	}
 
 }
